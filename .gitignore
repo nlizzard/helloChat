@@ -1,6 +1,16 @@
 # Compiled class file
 *.class
 
+# Custom file
+.idea/
+*.iml
+out/
+gen/
+.gradle/
+.settings/
+bin/
+target/
+
 # Log file
 *.log
 
