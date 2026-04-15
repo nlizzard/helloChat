@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4da0a3f8-7c15-413c-bd26-8a9f5c95f9d4" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/helloChat-api/auth-service-88/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/auth-service-88/src/main/java/com/nlizzard/AuthApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/auth-service-88/src/main/java/com/nlizzard/controller/HelloController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/auth-service-88/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/auth-service-88/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/file-service-55/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/file-service-55/src/main/java/com/nlizzard/FileApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/file-service-55/src/main/java/com/nlizzard/controller/HelloController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/file-service-55/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/file-service-55/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/main-service-66/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/main-service-66/src/main/java/com/nlizzard/MainApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/main-service-66/src/main/java/com/nlizzard/controller/HelloController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/main-service-66/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/main-service-66/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-api/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-common/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/src/main/java/com/nlizzard/GatewayApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/src/main/java/com/nlizzard/controller/HelloController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/src/main/java/com/nlizzard/filter/IPLimitFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-gateway-1000/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/helloChat-pojo/pom.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="maven-pom" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="customMavenHome" value="D:/program/Maven/apache-maven-3.8.6" />
+        <option name="localRepository" value="D:\program\Maven\repository" />
+        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
+        <option name="useMavenConfig" value="false" />
+        <option name="userSettingsFile" value="D:\program\Maven\apache-maven-3.8.6\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3CNjeohmbAIAnlhxeKMFpFMpFPw" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="openDirectoriesWithSingleClick" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.TestRedis.executor": "Run",
+    "JUnit.TestRedis.setRedis.executor": "Run",
+    "Maven.helloChat [install].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "发现新的/更新的数据库配置",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.AuthApplication.executor": "Run",
+    "Spring Boot.FileApplication.executor": "Run",
+    "Spring Boot.GatewayApplication.executor": "Run",
+    "Spring Boot.MainApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/project/helloChat/helloChat-gateway-1000/src/main/java/com/nlizzard",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "MavenSettings",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\project\helloChat\helloChat-gateway-1000\src\main\java\com\nlizzard" />
+      <recent name="E:\project\helloChat\helloChat-gateway-1000\src\main\resources" />
+      <recent name="E:\project\helloChat\helloChat-api\main-service-66\src\main\resources" />
+      <recent name="E:\project\helloChat\helloChat-api\file-service-55\src\main\resources" />
+      <recent name="E:\project\helloChat\helloChat-api\main-service-77\src\main\resources" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="AuthApplication" value="STOPPED" />
+              <entry key="FileApplication" value="STOPPED" />
+              <entry key="GatewayApplication" value="STOPPED" />
+              <entry key="MainApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.AuthApplication">
+    <configuration name="AuthApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="auth-service-88" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.nlizzard.AuthApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FileApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="file-service-55" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.nlizzard.FileApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="helloChat-gateway-1000" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.nlizzard.GatewayApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.nlizzard.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MainApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="main-service-66" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.nlizzard.MainApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.GatewayApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.31033.145" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="4da0a3f8-7c15-413c-bd26-8a9f5c95f9d4" name="更改" comment="" />
+      <created>1776233023712</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1776233023712</updated>
+      <workItem from="1776233031513" duration="5220000" />
+      <workItem from="1776238650200" duration="19579000" />
+      <workItem from="1776265417257" duration="6104000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="org.springframework.beans.factory.BeanCreationException" package="org.springframework.beans.factory" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

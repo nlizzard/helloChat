@@ -1,0 +1,76 @@
+server:
+  port: 1000
+  tomcat:
+    max-swallow-size: -1  # 不限制请求体大小
+    uri-encoding: UTF-8
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: gateway-service
+  data:
+    redis:
+      database: ${redis.database}
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+  config:
+    import:
+      - nacos:gateway-dev.yaml?group=DEFAULT_GROUP
+  cloud:
+    nacos:
+      config:
+        import-check:
+          enabled: false
+      # 服务注册/发现
+      discovery:
+        server-addr: ${nacos.discovery.addr}
+        username: ${nacos.discovery.username}
+        password: ${nacos.discovery.password}
+      # 配置管理
+      server-addr: 192.168.123.2:18848
+      username: nacos
+      password: nacos
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            - id: authRoute
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth/**
+            - id: fileRoute
+              uri: lb://file-service
+              predicates:
+                - Path=/file/**
+            - id: mainRoute
+              uri: lb://main-service
+              predicates:
+                - Path=/main/**
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allow-credentials: true
+                allowed-headers: "*"
+                allowed-origin-patterns: "*"
+                allowed-methods: "*"
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password:
+    url: jdbc:mysql://192.168.123.2:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+
+
+#blackIp:
+#  continueCounts: 5  #操作次数限制
+#  timeInterval: 20   #操作间隔限制 （单位：秒）
+#  limitTimes: 30     #限制访问时长 （单位：秒）
+
+# 日志级别
+logging:
+  level:
+    root: info

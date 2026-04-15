@@ -1,0 +1,31 @@
+server:
+  port: 55
+  tomcat:
+    max-swallow-size: -1  # 不限制请求体大小
+    uri-encoding: UTF-8
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: file-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password:
+    url: jdbc:mysql://192.168.123.2:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+  cloud:
+    nacos:
+      config:
+        import-check:
+          enabled: false
+      discovery:
+        username: ${nacos.discovery.username}
+        password: ${nacos.discovery.password}
+        server-addr: ${nacos.discovery.addr}
+
+
+# 日志级别
+logging:
+  level:
+    root: info

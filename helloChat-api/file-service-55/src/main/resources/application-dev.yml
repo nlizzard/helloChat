@@ -1,0 +1,6 @@
+# nacos服务发现注册相关配置
+nacos:
+  discovery:
+    username: nacos
+    password: nacos
+    addr: 192.168.123.2:18848
