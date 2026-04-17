@@ -1,2 +1,7 @@
 E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\AuthApplication.java
 E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\controller\HelloController.java
+E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\controller\PassportController.java
+E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\InterceptorConfig.java
+E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\mapper\UsersMapper.java
+E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\service\impl\UsersServiceImpl.java
+E:\project\helloChat\helloChat-api\auth-service-88\src\main\java\com\nlizzard\service\UsersService.java

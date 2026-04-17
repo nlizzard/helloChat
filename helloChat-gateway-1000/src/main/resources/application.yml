@@ -1,14 +1,12 @@
 server:
   port: 1000
-  tomcat:
-    max-swallow-size: -1  # 不限制请求体大小
-    uri-encoding: UTF-8
 
 spring:
   profiles:
     active: dev
   application:
     name: gateway-service
+  # redis配置
   data:
     redis:
       database: ${redis.database}
@@ -42,7 +40,7 @@ spring:
             - id: authRoute
               uri: lb://auth-service
               predicates:
-                - Path=/auth/**
+                - Path=/auth/**,/passport/**
             - id: fileRoute
               uri: lb://file-service
               predicates:
@@ -58,13 +56,6 @@ spring:
                 allowed-headers: "*"
                 allowed-origin-patterns: "*"
                 allowed-methods: "*"
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password:
-    url: jdbc:mysql://192.168.123.2:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-
-
 #blackIp:
 #  continueCounts: 5  #操作次数限制
 #  timeInterval: 20   #操作间隔限制 （单位：秒）

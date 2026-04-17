@@ -15,6 +15,8 @@ public class BaseInfoProperties {
     @Resource
     public RedisOperator redis;
 
+    public static final String PROJECT_KEY_PREFIX="helloChat:";
+
     public static final String TEMP_STRING = "temp";
 
     public static final String HEADER_USER_ID = "headerUserId";

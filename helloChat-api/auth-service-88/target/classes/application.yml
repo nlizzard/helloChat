@@ -9,12 +9,28 @@ spring:
     active: dev
   application:
     name: auth-service
+  # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password:
     url: jdbc:mysql://192.168.123.2:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connection-timeout: 30000               # 等待连接池分配连接的最大时间（毫秒），超过这个时长还没有可用的连接，则会抛出SQLException
+      minimum-idle: 5                         # 最小连接数
+      maximum-pool-size: 20                   # 最大连接数
+      auto-commit: true                       # 自动提交
+      idle-timeout: 600000                    # 连接超时的最大时长（毫秒），超时则会被释放（retired）
+      pool-name: DataSourceHikariCP           # 连接池的名字
+      max-lifetime: 18000000                  # 连接池的最大生命时长（毫秒），超时则会被释放（retired）
+      connection-test-query: SELECT 1
+  # redis配置
+  data:
+    redis:
+      database: 0
+      host: 192.168.123.2
+      port: 6379
   cloud:
     nacos:
       config:

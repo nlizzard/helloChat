@@ -1,5 +1,6 @@
 package com.nlizzard.utils;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -19,10 +20,10 @@ import java.util.concurrent.TimeUnit;
  * Redis 工具类
  */
 @Component
+@RequiredArgsConstructor
 public class RedisOperator {
-	
-	@Autowired
-	private StringRedisTemplate redisTemplate;
+
+	private final StringRedisTemplate redisTemplate;
 
 	// Key（键），简单的key-value操作
 

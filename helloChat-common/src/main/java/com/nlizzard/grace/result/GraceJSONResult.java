@@ -1,10 +1,13 @@
 package com.nlizzard.grace.result;
 
+import lombok.Data;
+
 import java.util.Map;
 
 /**
  * 自定义响应数据类型枚举
  */
+@Data
 public class GraceJSONResult {
 
     // 响应业务状态码
@@ -24,6 +27,7 @@ public class GraceJSONResult {
      * @param data
      * @return
      */
+
     public static GraceJSONResult ok(Object data) {
         return new GraceJSONResult(data);
     }
@@ -40,7 +44,6 @@ public class GraceJSONResult {
         this.success = ResponseStatusEnum.SUCCESS.success();
         this.data = data;
     }
-
 
     /**
      * 错误返回，直接调用error方法即可，当然也可以在ResponseStatusEnum中自定义错误后再返回也都可以
@@ -84,6 +87,7 @@ public class GraceJSONResult {
     public static GraceJSONResult errorCustom(ResponseStatusEnum responseStatus) {
         return new GraceJSONResult(responseStatus);
     }
+
     public static GraceJSONResult exception(ResponseStatusEnum responseStatus) {
         return new GraceJSONResult(responseStatus);
     }
@@ -103,40 +107,5 @@ public class GraceJSONResult {
         this.status = responseStatus.status();
         this.msg = msg;
         this.success = responseStatus.success();
-    }
-
-    public GraceJSONResult() {
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
-
-    public Boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(Boolean success) {
-        this.success = success;
     }
 }

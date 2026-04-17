@@ -11,6 +11,14 @@
 
     <artifactId>auth-service-88</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.nlizzard</groupId>
+            <artifactId>base-service</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+
 
     <!--打包插件-->
     <build>
