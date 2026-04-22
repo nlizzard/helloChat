@@ -15,7 +15,7 @@ public enum ResponseStatusEnum {
     TICKET_INVALID(502,false,"会话失效，请重新登录！"),
     USER_ALREADY_EXIST_ERROR(5021,false,"该用户已存在，不可重复注册！"),
     USER_ISNOT_EXIST_ERROR(5023,false,"该用户不存在，请前往注册！"),
-    WECHAT_NUM_ALREADY_MODIFIED_ERROR(5024,false,"微信号已被修改，请等待1年后再修改！"),
+    WECHAT_NUM_ALREADY_MODIFIED_ERROR(5024,false,"微信号已无修改次数，请等待1年后再修改！"),
     CAN_NOT_ADD_SELF_FRIEND_ERROR(5025,false,"无法添加自己为好友！"),
     FRIEND_NOT_EXIST_ERROR(5026,false,"好友不存在！"),
 
