@@ -77,7 +77,7 @@ public class IPLimitFilter extends BaseInfoProperties implements GlobalFilter, O
         long limitLeftTimes = redis.ttl(ipRedisLimitKey);
         if (limitLeftTimes > 0) {
             // 终止请求，返回错误
-            return renderErrorMsg(exchange, ResponseStatusEnum.SYSTEM_ERROR_BLACK_IP);
+            return RenderErrorUtils.display(exchange, ResponseStatusEnum.SYSTEM_ERROR_BLACK_IP);
         }
 
         // 在redis中获得ip的累加次数
@@ -95,38 +95,10 @@ public class IPLimitFilter extends BaseInfoProperties implements GlobalFilter, O
             // 限制ip访问的时间[limitTimes]
             redis.set(ipRedisLimitKey, ipRedisLimitKey, limitTimes);
             // 终止请求，返回错误
-            return renderErrorMsg(exchange, ResponseStatusEnum.SYSTEM_ERROR_BLACK_IP);
+            return RenderErrorUtils.display(exchange, ResponseStatusEnum.SYSTEM_ERROR_BLACK_IP);
         }
 
         return chain.filter(exchange);
-    }
-
-    /**
-     * 重新包装并且返回错误信息
-     */
-    public Mono<Void> renderErrorMsg(ServerWebExchange exchange,
-                                     ResponseStatusEnum statusEnum) {
-        // 1. 获得相应response
-        ServerHttpResponse response = exchange.getResponse();
-
-        // 2. 构建jsonResult
-        GraceJSONResult jsonResult = GraceJSONResult.exception(statusEnum);
-
-        // 3. 设置header类型
-        if (!response.getHeaders().containsHeader("Content-Type")) {
-            response.getHeaders().add("Content-Type",
-                    MimeTypeUtils.APPLICATION_JSON_VALUE);
-        }
-
-        // 4. 修改response的状态码code为500
-        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-
-        // 5. 转换json并且像response中写入数据
-        String resultJson = new Gson().toJson(jsonResult);
-        DataBuffer buffer = response
-                .bufferFactory()
-                .wrap(resultJson.getBytes(StandardCharsets.UTF_8));
-        return response.writeWith(Mono.just(buffer));
     }
 
     // 过滤器优先级 越小越先执行
