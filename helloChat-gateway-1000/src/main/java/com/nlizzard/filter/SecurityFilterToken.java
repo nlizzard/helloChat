@@ -49,6 +49,15 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
             }
         }
 
+        // 3.2 放行静态资源路径
+        String fileStart = excludeUrlProperties.getFileStart();
+        if(StringUtils.isNotBlank(fileStart)){
+            if (antPathMatcher.matchStart(fileStart, url)) {
+                // 如果匹配到，则直接放行，表示当前的url是不需要被拦截校验的
+                return chain.filter(exchange);
+            }
+        }
+
         // 4. 代码到达此处，表示请求被拦截，需要进行校验
         log.info("当前请求的路径[{}]被拦截...", url);
 

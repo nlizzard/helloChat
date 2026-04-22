@@ -6,8 +6,10 @@ import com.nlizzard.pojo.Users;
 import com.nlizzard.pojo.bo.ModifyUserBO;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.service.UsersService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("userInfo")
 @RequiredArgsConstructor
+@Validated
 public class UserController extends BaseInfoProperties {
 
     private final UsersService usersService;
@@ -65,7 +68,7 @@ public class UserController extends BaseInfoProperties {
      * @return GraceJSONResult
      */
     @PostMapping("get")
-    public GraceJSONResult get(String userId){
+    public GraceJSONResult get(@NotBlank(message = "用户ID不能为空") String userId){
         return GraceJSONResult.ok(getUserInfo(userId,false));
     }
 
