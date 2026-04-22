@@ -4,3 +4,11 @@ nacos:
     username: nacos
     password: nacos
     addr: 192.168.123.2:18848
+
+# minio配置
+minio:
+  endpoint: http://192.168.123.2:9000     # MinIO服务地址 (客户端使用)
+  fileHost: http://192.168.123.2:9000     # 文件地址host (访问文件时使用，上线后可改为域名)
+  bucketName: hellochat                   # 存储桶bucket名称
+  accessKey: minio                        # 用户名
+  secretKey: miniominio                   # 密码

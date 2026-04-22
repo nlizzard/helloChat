@@ -3,7 +3,6 @@ server:
   tomcat:
     max-swallow-size: -1  # 不限制请求体大小
     uri-encoding: UTF-8
-
 spring:
   profiles:
     active: dev
@@ -18,6 +17,10 @@ spring:
         username: ${nacos.discovery.username}
         password: ${nacos.discovery.password}
         server-addr: ${nacos.discovery.addr}
+  servlet:
+    multipart:
+      max-file-size: 500KB # 设置单个文件的最大上传大小
+      max-request-size: 500KB # 设置整个请求的最大上传大小
 
 
 # 日志级别
