@@ -30,7 +30,7 @@ spring:
     redis:
       database: 0
       host: 192.168.123.2
-      port: 6579
+      port: 6379
   cloud:
     nacos:
       config:

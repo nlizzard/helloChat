@@ -16,6 +16,8 @@ import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static com.nlizzard.utils.LocalDateUtils.*;
+
 @Data
 @ToString
 @AllArgsConstructor
@@ -34,7 +36,7 @@ public class UsersVO {
 
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
-    @JsonFormat(pattern = LocalDateUtils.DATE_PATTERN, timezone = LocalDateUtils.TIMEZONE_GMT8)
+    @JsonFormat(locale = LOCALE_ZH,pattern = DATE_PATTERN, timezone = TIMEZONE_GMT8)
     private LocalDate birthday;
 
     private String country;
@@ -47,12 +49,12 @@ public class UsersVO {
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern = LocalDateUtils.DATETIME_PATTERN, timezone = LocalDateUtils.TIMEZONE_GMT8)
+    @JsonFormat(locale = LOCALE_ZH,pattern = DATE_PATTERN, timezone = TIMEZONE_GMT8)
     private LocalDateTime createdTime;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern = LocalDateUtils.DATETIME_PATTERN, timezone = LocalDateUtils.TIMEZONE_GMT8)
+    @JsonFormat(locale = LOCALE_ZH,pattern = DATE_PATTERN, timezone = TIMEZONE_GMT8)
     private LocalDateTime updatedTime;
 
     private String userToken;       // 用户会话令牌token，传递给前端让前端保存处理

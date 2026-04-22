@@ -17,6 +17,11 @@ import java.util.List;
 public class LocalDateUtils {
 
     /**
+     * 中文
+     */
+    public static final String LOCALE_ZH = "zh";
+
+    /**
      * 显示年月日时分秒，例如 2015-08-11 09:51:53.
      */
     public static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";

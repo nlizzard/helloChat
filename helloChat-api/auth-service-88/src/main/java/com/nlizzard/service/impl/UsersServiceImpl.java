@@ -53,16 +53,21 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
             return GraceJSONResult.errorCustom(ResponseStatusEnum.SMS_CODE_ERROR);
         }
 
+        // 如果用户没有输入昵称，则默认设置为用户138****1234的形式
+        if(StringUtils.isBlank(nickname)){
+            nickname = "用户" + DesensitizationUtil.commonDisplay(mobile);
+        }
+
         // 2. 根据mobile查询数据库，如果用户存在，则提示不能重复注册
         Users user = queryMobileIfExist(mobile);
-        if (user == null) {
-            // 2.1 如果查询数据库中用户为空，则表示用户没有注册过，则需要进行用户信息数据的入库
-            UsersService proxy = (UsersService)AopContext.currentProxy();
-            // 2.2 这里需要使用代理对象来调用方法，才能保证事务能够生效
-            user = proxy.createUsers(mobile, nickname);
-        } else {
+        if(user != null){
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_ALREADY_EXIST_ERROR);
         }
+
+        // 2.1 如果查询数据库中用户为空，则表示用户没有注册过，则需要进行用户信息数据的入库
+        UsersService proxy = (UsersService)AopContext.currentProxy();
+        // 2.2 这里需要使用代理对象来调用方法，才能保证事务能够生效
+        user = proxy.createUsers(mobile, nickname);
 
         // 3. 用户注册成功
         return successRegistryOrLogin(mobile, user);
@@ -161,7 +166,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         String[] uuidStr = uuid.split("-");
         String wechatNum = "wx" + uuidStr[0] + uuidStr[1];
         user.setWechatNum(wechatNum);
-        // TODO: 微信二维码生成
+        // TODO: 仿微信二维码生成
         user.setWechatNumImg(USER_FACE1);
 
 
