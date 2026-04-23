@@ -110,4 +110,28 @@ public class UserController extends BaseInfoProperties {
 
         return GraceJSONResult.ok(usersVO);
     }
+
+    /**
+     * 修改用户聊天背景图接口
+     * @param userId 用户ID
+     * @param chatBg 聊天背景图地址
+     * @return GraceJSONResult
+     */
+    @PostMapping("updateChatBg")
+    public GraceJSONResult updateChatBg(
+                                        @RequestParam("userId") String userId,
+                                        @RequestParam("chatBg") String chatBg) {
+        ModifyUserBO userBO = new ModifyUserBO();
+        userBO.setUserId(userId);
+        userBO.setChatBg(chatBg);
+
+        // 修改用户信息
+        usersService.modifyUserInfo(userBO);
+
+        // 返回最新用户信息
+        UsersVO usersVO = getUserInfo(userBO.getUserId(), true);
+
+        return GraceJSONResult.ok(usersVO);
+
+    }
 }

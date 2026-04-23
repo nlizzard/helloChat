@@ -166,6 +166,43 @@ public class FileController {
     }
 
     /**
+     * 上传聊天图片接口
+     * @param file 聊天图片文件
+     * @param userId 用户ID
+     * @return 聊天图片URL地址
+     */
+    @PostMapping("uploadChatBg")
+    public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file,
+                                           @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+
+        String filename = file.getOriginalFilename();
+        if (StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "chat"
+                + "/" + userId
+                + "/" + "photo"
+                + "/" + dealWithoutFilename(filename);
+
+        String chatImageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream(),
+                true);
+
+        // 微服务远程调用更新用户聊天背景图到数据库 OpenFeign
+        GraceJSONResult jsonResult = userInfoMicroServiceFeign
+                .updateChatBg(userId, chatImageUrl);
+        Object data = jsonResult.getData();
+
+        String json = JsonUtils.objectToJson(data);
+        UsersVO usersVO = JsonUtils.jsonToPojo(json, UsersVO.class);
+
+        return GraceJSONResult.ok(usersVO);
+    }
+
+
+    /**
      * 处理文件名称，生成新的文件名称，格式：原文件名称-uuid.后缀
      * @param filename 原文件名称
      * @return 新文件名称

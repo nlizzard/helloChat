@@ -14,7 +14,11 @@ public interface UserInfoMicroServiceFeign {
                                @RequestParam("faceUrl") String faceUrl);
 
     @PostMapping("/userInfo/updateFriendCircleBg")
-    GraceJSONResult updateFriendCircleBg(
-            @RequestParam("userId") String userId,
-            @RequestParam("friendCircleBg") String friendCircleBg);
+    GraceJSONResult updateFriendCircleBg(@RequestParam("userId") String userId,
+                                        @RequestParam("friendCircleBg") String friendCircleBg);
+
+    @PostMapping("/userInfo/updateChatBg")
+    GraceJSONResult updateChatBg(@RequestParam("userId") String userId,
+                                 @RequestParam("chatBg") String chatBg);
+
 }
