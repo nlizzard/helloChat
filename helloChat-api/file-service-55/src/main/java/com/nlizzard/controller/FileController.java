@@ -1,12 +1,12 @@
 package com.nlizzard.controller;
 
+import com.nlizzard.api.feign.UserInfoMicroServiceFeign;
 import com.nlizzard.config.MinIOConfig;
 import com.nlizzard.grace.result.GraceJSONResult;
-import com.nlizzard.grace.result.ResponseStatusEnum;
+import com.nlizzard.pojo.vo.UsersVO;
+import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
 import io.micrometer.common.util.StringUtils;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -28,10 +28,12 @@ public class FileController {
 
     private final MinIOConfig minIOConfig;
 
+    private final UserInfoMicroServiceFeign userInfoMicroServiceFeign;
+
     // springboot文件上传实现方案一（传统单体项目可使用）
     @PostMapping("uploadFace1")
     public GraceJSONResult uploadFace1(@RequestParam("file") MultipartFile file,
-                                       @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                       @RequestParam("userId") @NotNull(message = "用户ID不能为空") String userId) throws Exception {
 
         // abc.123.456.png
         String filename = file.getOriginalFilename();   // 获得文件原始名称
@@ -66,7 +68,7 @@ public class FileController {
     // 分布式存储技术方案minIO实现文件上传（微服务项目推荐使用）
     @PostMapping("uploadFace")
     public GraceJSONResult uploadFace(@RequestParam("file") MultipartFile file,
-                                      @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                      @RequestParam("userId") @NotNull(message = "用户ID不能为空") String userId) throws Exception {
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (StringUtils.isBlank(filename)) {
@@ -84,6 +86,18 @@ public class FileController {
                 + "/"
                 + filename;
 
-        return GraceJSONResult.ok(faceUrl);
+        /*
+          微服务远程调用更新用户头像到数据库 OpenFeign
+          如果前端没有保存按钮则可以这么做，如果有保存提交按钮，则在前端可以触发
+          此处则不需要进行微服务调用，让前端触发保存提交到后台进行保存
+         */
+
+        GraceJSONResult jsonResult = userInfoMicroServiceFeign.updateFace(userId, faceUrl);
+        Object data = jsonResult.getData();
+
+        String json = JsonUtils.objectToJson(data);
+        UsersVO usersVO = JsonUtils.jsonToPojo(json, UsersVO.class);
+
+        return GraceJSONResult.ok(usersVO);
     }
 }

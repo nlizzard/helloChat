@@ -22,6 +22,12 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.nlizzard</groupId>
+            <artifactId>base-service</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
 

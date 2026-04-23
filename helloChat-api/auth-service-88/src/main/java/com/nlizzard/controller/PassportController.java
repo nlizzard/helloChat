@@ -32,7 +32,7 @@ public class PassportController extends BaseInfoProperties {
     @GetMapping("getSMSCode")
     public GraceJSONResult getSMSCode(@NotBlank(message = "手机号不能为空")
                                           @Length(min = 11, max = 11, message = "手机号长度不正确")
-                                          String mobile,
+                                          @RequestParam("mobile") String mobile,
                                       HttpServletRequest request){
 
         // 获得用户的ip
@@ -90,7 +90,7 @@ public class PassportController extends BaseInfoProperties {
      * @param userId 用户ID
      */
     @GetMapping("logout")
-    public GraceJSONResult logout(@RequestParam @NotBlank(message = "用户ID不能为空") String userId)  {
+    public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId)  {
         // 清理用户的分布式会话
         // 限制用户在一台设备进行登录->登出
         redis.del(REDIS_USER_TOKEN + ":" + userId);

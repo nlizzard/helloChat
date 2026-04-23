@@ -10,10 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -68,8 +65,26 @@ public class UserController extends BaseInfoProperties {
      * @return GraceJSONResult
      */
     @PostMapping("get")
-    public GraceJSONResult get(@NotBlank(message = "用户ID不能为空") String userId){
+    public GraceJSONResult get(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId){
         return GraceJSONResult.ok(getUserInfo(userId,false));
+    }
+
+    /**
+     * 修改用户头像接口
+     * @param userId 用户ID
+     * @param faceUrl 头像地址
+     * @return GraceJSONResult
+     */
+    @PostMapping("updateFace")
+    public GraceJSONResult updateFace(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId,
+                                      @RequestParam("faceUrl") @NotBlank(message = "头像地址不能为空") String faceUrl) {
+        ModifyUserBO modifyUserBO = new ModifyUserBO();
+        modifyUserBO.setUserId(userId);
+        modifyUserBO.setFace(faceUrl);
+        usersService.modifyUserInfo(modifyUserBO);
+
+        UsersVO usersVO = getUserInfo(userId,true);
+        return GraceJSONResult.ok(usersVO);
     }
 
 }

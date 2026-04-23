@@ -1,6 +1,8 @@
 package com.nlizzard.grace.result;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -8,6 +10,8 @@ import java.util.Map;
  * 自定义响应数据类型枚举
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class GraceJSONResult {
 
     // 响应业务状态码
