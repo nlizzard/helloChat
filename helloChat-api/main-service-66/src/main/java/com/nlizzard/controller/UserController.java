@@ -2,10 +2,12 @@ package com.nlizzard.controller;
 
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.pojo.Users;
 import com.nlizzard.pojo.bo.ModifyUserBO;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.service.UsersService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -133,5 +135,29 @@ public class UserController extends BaseInfoProperties {
 
         return GraceJSONResult.ok(usersVO);
 
+    }
+
+    /**
+     * 搜索好友接口，根据微信号或手机号查询用户信息
+     * @param queryString 微信号或手机号
+     * @param request HttpServletRequest对象，用于获取当前用户ID
+     * @return GraceJSONResult
+     */
+    @PostMapping("queryFriend")
+    public GraceJSONResult queryFriend(@NotBlank(message = "搜索字段不能为空") String queryString,
+                                       HttpServletRequest request) {
+
+        Users friend = usersService.getByWechatNumOrMobile(queryString);
+        if (friend == null) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FRIEND_NOT_EXIST_ERROR);
+        }
+
+        // 判断，不能添加自己为好友
+        String myId = request.getHeader(HEADER_USER_ID);
+        if (myId.equals(friend.getId())) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.CAN_NOT_ADD_SELF_FRIEND_ERROR);
+        }
+
+        return GraceJSONResult.ok(friend);
     }
 }

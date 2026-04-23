@@ -9,7 +9,7 @@ import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
 import com.nlizzard.utils.QrCodeUtils;
 import io.micrometer.common.util.StringUtils;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +38,7 @@ public class FileController {
     // springboot文件上传实现方案一（传统单体项目可使用）
     @PostMapping("uploadFace1")
     public GraceJSONResult uploadFace1(@RequestParam("file") MultipartFile file,
-                                       @RequestParam("userId") @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                       @RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
 
         // abc.123.456.png
         String filename = file.getOriginalFilename();   // 获得文件原始名称
@@ -73,7 +73,7 @@ public class FileController {
     // 分布式存储技术方案minIO实现文件上传（微服务项目推荐使用）
     @PostMapping("uploadFace")
     public GraceJSONResult uploadFace(@RequestParam("file") MultipartFile file,
-                                      @RequestParam("userId") @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                      @RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (StringUtils.isBlank(filename)) {
@@ -139,7 +139,7 @@ public class FileController {
      */
     @PostMapping("uploadFriendCircleBg")
     public GraceJSONResult uploadFriendCircleBg(@RequestParam("file") MultipartFile file,
-                                                @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                                @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
         // 获得文件原始名称
         String filename = file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {
@@ -173,7 +173,7 @@ public class FileController {
      */
     @PostMapping("uploadChatBg")
     public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file,
-                                           @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+                                           @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
 
         String filename = file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {

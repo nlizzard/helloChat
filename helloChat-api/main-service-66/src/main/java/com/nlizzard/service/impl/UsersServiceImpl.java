@@ -1,5 +1,7 @@
 package com.nlizzard.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 
@@ -77,5 +79,15 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
             // throw new RuntimeException(e);
             return null;
         }
+    }
+
+    @Override
+    public Users getByWechatNumOrMobile(String queryString) {
+        LambdaQueryWrapper<Users> usersLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        usersLambdaQueryWrapper.eq(Users::getWechatNum, queryString)
+                .or()
+                .eq(Users::getMobile, queryString);
+
+        return usersMapper.selectOne(usersLambdaQueryWrapper);
     }
 }
