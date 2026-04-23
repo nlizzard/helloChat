@@ -6,6 +6,7 @@ import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
+import com.nlizzard.utils.QrCodeUtils;
 import io.micrometer.common.util.StringUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static com.nlizzard.grace.result.ResponseStatusEnum.FILE_UPLOAD_FAILD;
 
@@ -76,16 +80,10 @@ public class FileController {
         }
         // 定义存放路径，face/userId/filename
         filename = "face" + "/" + userId + "/" + filename;
-        MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+
+        String faceUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
                 filename,
-                file.getInputStream());
-
-        String faceUrl = minIOConfig.getFileHost()
-                + "/"
-                + minIOConfig.getBucketName()
-                + "/"
-                + filename;
-
+                file.getInputStream(),true);
         /*
           微服务远程调用更新用户头像到数据库 OpenFeign
           如果前端没有保存按钮则可以这么做，如果有保存提交按钮，则在前端可以触发
@@ -100,4 +98,36 @@ public class FileController {
 
         return GraceJSONResult.ok(usersVO);
     }
+
+    /**
+     * 生成微信二维码，并上传到minIO中
+     * @param wechatNumber 微信号
+     * @param userId 用户ID
+     * @return 微信二维码存放路径
+     */
+    @PostMapping("generatorQrCode")
+    public String generatorQrCode(String wechatNumber,
+                                  String userId) throws Exception {
+
+        // 构建map对象
+        Map<String, String> map = new HashMap<>();
+        map.put("wechatNumber", wechatNumber);
+        map.put("userId", userId);
+
+        // 把对象转换为json字符串，用于存储到二维码中
+        String data = JsonUtils.objectToJson(map);
+
+        // 生成二维码
+        String qrCodePath = QrCodeUtils.generateQRCode(data);
+
+        // 把二维码上传到minio中
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(qrCodePath)) {
+            String uuid = UUID.randomUUID().toString();
+            String objectName = "wechatNumber" + "/" + userId + "/" + uuid + ".png";
+            return MinIOUtils.uploadFile(minIOConfig.getBucketName(), objectName, qrCodePath, true);
+        }
+
+        return null;
+    }
+
 }

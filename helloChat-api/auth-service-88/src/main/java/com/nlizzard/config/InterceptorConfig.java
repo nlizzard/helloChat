@@ -1,4 +1,4 @@
-package com.nlizzard;
+package com.nlizzard.config;
 
 import com.nlizzard.interceptor.SMSInterceptor;
 import org.springframework.context.annotation.Bean;

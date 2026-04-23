@@ -1,5 +1,6 @@
 package com.nlizzard.service.impl;
 
+import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 
 import com.nlizzard.exceptions.GraceException;
@@ -24,6 +25,8 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
 
     private final UsersMapper usersMapper;
 
+    private final FileMicroServiceFeign fileMicroServiceFeign;
+
     @Override
     public void modifyUserInfo(ModifyUserBO modifyUserBO) {
         Users pendingUser = new Users();
@@ -47,6 +50,8 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
             redis.setByDays(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM+":"+userId
                             ,userId
                             ,365);
+            // 设置新的微信二维码
+            pendingUser.setWechatNumImg(getQrCodeUrl(wechatNum,userId));
         }
 
         pendingUser.setId(modifyUserBO.getUserId());
@@ -60,5 +65,17 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
     @Override
     public Users getById(String userId) {
         return usersMapper.selectById(userId);
+    }
+
+    /**
+     *  生成微信二维码，返回图片url
+     */
+    private String getQrCodeUrl(String wechatNumber, String userId) {
+        try {
+            return fileMicroServiceFeign.generatorQrCode(wechatNumber, userId);
+        } catch (Exception e) {
+            // throw new RuntimeException(e);
+            return null;
+        }
     }
 }

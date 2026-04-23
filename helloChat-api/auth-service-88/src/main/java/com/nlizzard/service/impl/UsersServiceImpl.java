@@ -1,6 +1,7 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.enums.Sex;
 import com.nlizzard.grace.result.GraceJSONResult;
@@ -29,6 +30,11 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
     private final UsersMapper usersMapper;
 
     private final SMSTask smsTask;
+
+    private final FileMicroServiceFeign fileMicroServiceFeign;
+
+    // TODO: 默认头像图片，先用我个人博客图片，后续修改
+    private static final String USER_FACE1 = "https://nlizzard.github.io/img/logo.jpg";
 
 
     // 发送短信验证码
@@ -142,8 +148,6 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         return GraceJSONResult.ok(usersVO);
     }
 
-    // TODO: 默认头像图片，先用我个人博客图片，后续修改
-    private static final String USER_FACE1 = "https://nlizzard.github.io/img/logo.jpg";
     @Override
     public Users queryMobileIfExist(String mobile) {
         return usersMapper.selectOne(
@@ -166,8 +170,9 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         String[] uuidStr = uuid.split("-");
         String wechatNum = "wx" + uuidStr[0] + uuidStr[1];
         user.setWechatNum(wechatNum);
-        // TODO: 仿微信二维码生成
-        user.setWechatNumImg(USER_FACE1);
+        // 仿微信二维码生成
+        String wechatNumUrl = getQrCodeUrl(wechatNum, TEMP_STRING);
+        user.setWechatNumImg(wechatNumUrl);
 
 
         // 用户138****1234
@@ -200,4 +205,15 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         return user;
     }
 
+    /**
+     *  生成微信二维码，返回图片url
+     */
+    private String getQrCodeUrl(String wechatNumber, String userId) {
+        try {
+            return fileMicroServiceFeign.generatorQrCode(wechatNumber, userId);
+        } catch (Exception e) {
+            // throw new RuntimeException(e);
+            return null;
+        }
+    }
 }
