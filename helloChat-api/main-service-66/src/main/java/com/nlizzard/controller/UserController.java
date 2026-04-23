@@ -87,4 +87,27 @@ public class UserController extends BaseInfoProperties {
         return GraceJSONResult.ok(usersVO);
     }
 
+    /**
+     * 修改用户朋友圈背景图接口
+     * @param userId 用户ID
+     * @param friendCircleBg 朋友圈背景图地址
+     * @return GraceJSONResult
+     */
+    @PostMapping("updateFriendCircleBg")
+    public GraceJSONResult updateFriendCircleBg(
+            @RequestParam("userId") String userId,
+            @RequestParam("friendCircleBg") String friendCircleBg) {
+
+        ModifyUserBO userBO = new ModifyUserBO();
+        userBO.setUserId(userId);
+        userBO.setFriendCircleBg(friendCircleBg);
+
+        // 修改用户信息
+        usersService.modifyUserInfo(userBO);
+
+        // 返回最新用户信息
+        UsersVO usersVO = getUserInfo(userBO.getUserId(), true);
+
+        return GraceJSONResult.ok(usersVO);
+    }
 }

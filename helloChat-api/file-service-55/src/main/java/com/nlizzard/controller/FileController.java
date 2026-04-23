@@ -3,6 +3,7 @@ package com.nlizzard.controller;
 import com.nlizzard.api.feign.UserInfoMicroServiceFeign;
 import com.nlizzard.config.MinIOConfig;
 import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
@@ -130,4 +131,59 @@ public class FileController {
         return null;
     }
 
+    /**
+     * 上传朋友圈背景图接口
+     * @param file 朋友圈背景图文件
+     * @param userId 用户ID
+     * @return 朋友圈背景图URL地址
+     */
+    @PostMapping("uploadFriendCircleBg")
+    public GraceJSONResult uploadFriendCircleBg(@RequestParam("file") MultipartFile file,
+                                                @NotNull(message = "用户ID不能为空") String userId) throws Exception {
+        // 获得文件原始名称
+        String filename = file.getOriginalFilename();
+        if (StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "friendCircleBg"
+                + "/" + userId
+                + "/" + dealWithoutFilename(filename);
+
+        String imageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream(),
+                true);
+
+        GraceJSONResult jsonResult = userInfoMicroServiceFeign
+                .updateFriendCircleBg(userId, imageUrl);
+        Object data = jsonResult.getData();
+
+        String json = JsonUtils.objectToJson(data);
+        UsersVO usersVO = JsonUtils.jsonToPojo(json, UsersVO.class);
+
+        return GraceJSONResult.ok(usersVO);
+    }
+
+    /**
+     * 处理文件名称，生成新的文件名称，格式：原文件名称-uuid.后缀
+     * @param filename 原文件名称
+     * @return 新文件名称
+     */
+    private String dealWithFilename(String filename) {
+        String suffixName = filename.substring(filename.lastIndexOf("."));
+        String fName = filename.substring(0, filename.lastIndexOf("."));
+        String uuid = UUID.randomUUID().toString();
+        return fName + "-" + uuid + suffixName;
+    }
+    /**
+     * 处理文件名称，生成新的文件名称，格式：uuid.后缀
+     * @param filename 原文件名称
+     * @return 新文件名称
+     */
+    private String dealWithoutFilename(String filename) {
+        String suffixName = filename.substring(filename.lastIndexOf("."));
+        String uuid = UUID.randomUUID().toString();
+        return uuid + suffixName;
+    }
 }
