@@ -1,7 +1,6 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.enums.YesOrNo;
@@ -97,5 +96,23 @@ public class FriendshipServiceImpl extends BaseInfoProperties implements Friends
         Friendship friendship2nd = friendshipMapper.selectOne(queryWrapper2);
 
         return friendship1st != null || friendship2nd != null;
+    }
+
+    // 删除好友
+    @Transactional
+    @Override
+    public void delete(String myId, String friendId) {
+
+        LambdaUpdateWrapper<Friendship> deleteWrapper1 = new LambdaUpdateWrapper<>();
+        deleteWrapper1.eq(Friendship::getMyId,myId)
+                .eq(Friendship::getFriendId,friendId);
+
+        friendshipMapper.delete(deleteWrapper1);
+
+        LambdaUpdateWrapper<Friendship> deleteWrapper2 = new LambdaUpdateWrapper<>();
+        deleteWrapper2.eq(Friendship::getMyId,friendId)
+                .eq(Friendship::getFriendId,myId);
+
+        friendshipMapper.delete(deleteWrapper2);
     }
 }

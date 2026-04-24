@@ -38,9 +38,7 @@ public interface FriendshipService {
      * @param friendId 好友ID
      * @param yesOrNo 表示是否拉黑，YesOrNo.YES表示拉黑，YesOrNo.NO表示恢复好友关系
      */
-    void updateBlackList(String myId,
-                                String friendId,
-                                YesOrNo yesOrNo);
+    void updateBlackList(String myId,String friendId,YesOrNo yesOrNo);
 
     /**
      * 判断两个朋友之前的关系是否拉黑
@@ -48,4 +46,13 @@ public interface FriendshipService {
      * @param friendId2nd 朋友2的ID
      */
     boolean isBlackEachOther(String friendId1st, String friendId2nd);
+
+    /**
+     * 删除好友
+     * 当前实现：任意一方删除好友后，好友之间的两个记录都删除，彻底断绝好友关系
+     * @param myId 我的ID
+     * @param friendId 好友ID
+     */
+    void delete(String myId, String friendId);
+
 }

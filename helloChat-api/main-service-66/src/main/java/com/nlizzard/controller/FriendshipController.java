@@ -7,7 +7,6 @@ import com.nlizzard.pojo.Friendship;
 import com.nlizzard.service.FriendshipService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -134,6 +133,22 @@ public class FriendshipController extends BaseInfoProperties {
         return GraceJSONResult.ok(
                 friendshipService.isBlackEachOther(
                         friendId1st, friendId2nd));
+    }
+
+    /**
+     * 删除好友接口
+     * @param request HttpServletRequest对象，用于获取用户ID等信息
+     * @param friendId 好友ID
+     * @return GraceJSONResult对象，表示操作结果
+     */
+    @PostMapping("delete")
+    public GraceJSONResult delete(HttpServletRequest request,
+                                  @NotBlank(message = "好友ID不能为空") String friendId) {
+
+        String myId = request.getHeader(HEADER_USER_ID);
+
+        friendshipService.delete(myId, friendId);
+        return GraceJSONResult.ok();
     }
 
 }
