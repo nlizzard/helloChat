@@ -2,7 +2,9 @@ package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.nlizzard.base.BaseInfoProperties;
+import com.nlizzard.enums.YesOrNo;
 import com.nlizzard.mapper.FriendshipMapper;
 import com.nlizzard.pojo.Friendship;
 import com.nlizzard.pojo.vo.ContactsVO;
@@ -57,5 +59,43 @@ public class FriendshipServiceImpl extends BaseInfoProperties implements Friends
         friendship.setUpdatedTime(LocalDateTime.now());
 
         friendshipMapper.update(friendship, updateWrapper);
+    }
+
+    // 拉黑或者恢复好友
+    @Transactional
+    @Override
+    public void updateBlackList(String myId,String friendId,YesOrNo yesOrNo) {
+
+        LambdaUpdateWrapper<Friendship> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Friendship::getMyId, myId)
+                              .eq(Friendship::getFriendId, friendId);
+
+        Friendship friendship = new Friendship();
+        friendship.setIsBlack(yesOrNo.type);
+        friendship.setUpdatedTime(LocalDateTime.now());
+
+        friendshipMapper.update(friendship, updateWrapper);
+    }
+
+    // 判断两个朋友之间的关系是否拉黑
+    @Override
+    public boolean isBlackEachOther(String friendId1st, String friendId2nd) {
+
+
+        LambdaQueryWrapper<Friendship> queryWrapper1 = new LambdaQueryWrapper<>();
+        queryWrapper1.eq(Friendship::getMyId, friendId1st)
+                    .eq(Friendship::getFriendId, friendId2nd)
+                    .eq(Friendship::getIsBlack, YesOrNo.YES.type);
+
+        Friendship friendship1st = friendshipMapper.selectOne(queryWrapper1);
+
+        LambdaQueryWrapper<Friendship> queryWrapper2 = new LambdaQueryWrapper<>();
+        queryWrapper2.eq(Friendship::getMyId, friendId2nd)
+                .eq(Friendship::getFriendId, friendId1st)
+                .eq(Friendship::getIsBlack, YesOrNo.YES.type);
+
+        Friendship friendship2nd = friendshipMapper.selectOne(queryWrapper2);
+
+        return friendship1st != null || friendship2nd != null;
     }
 }

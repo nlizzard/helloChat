@@ -1,5 +1,6 @@
 package com.nlizzard.service;
 
+import com.nlizzard.enums.YesOrNo;
 import com.nlizzard.pojo.Friendship;
 import com.nlizzard.pojo.vo.ContactsVO;
 
@@ -31,4 +32,20 @@ public interface FriendshipService {
      */
     void updateFriendRemark(String myId,String friendId,String friendRemark);
 
+    /**
+     * 拉黑或者恢复好友
+     * @param myId 我的ID
+     * @param friendId 好友ID
+     * @param yesOrNo 表示是否拉黑，YesOrNo.YES表示拉黑，YesOrNo.NO表示恢复好友关系
+     */
+    void updateBlackList(String myId,
+                                String friendId,
+                                YesOrNo yesOrNo);
+
+    /**
+     * 判断两个朋友之前的关系是否拉黑
+     * @param friendId1st 朋友1的ID
+     * @param friendId2nd 朋友2的ID
+     */
+    boolean isBlackEachOther(String friendId1st, String friendId2nd);
 }
