@@ -1,12 +1,9 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
-
 import com.nlizzard.exceptions.GraceException;
-import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.mapper.UsersMapper;
 import com.nlizzard.pojo.Users;
 import com.nlizzard.pojo.bo.ModifyUserBO;

@@ -48,7 +48,7 @@ spring:
             - id: mainRoute
               uri: lb://main-service
               predicates:
-                - Path=/main/**,/userInfo/**
+                - Path=/main/**,/userInfo/**,/friendRequest/**
           globalcors:
             cors-configurations:
               '[/**]':
@@ -56,6 +56,7 @@ spring:
                 allowed-headers: "*"
                 allowed-origin-patterns: "*"
                 allowed-methods: "*"
+#注释配置在nacos中动态管理
 #blackIp:
 #  continueCounts: 5  #操作次数限制
 #  timeInterval: 20   #操作间隔限制 （单位：秒）

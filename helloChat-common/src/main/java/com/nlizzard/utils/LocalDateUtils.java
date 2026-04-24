@@ -27,6 +27,7 @@ public class LocalDateUtils {
     public static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     public static final String DATETIME_PATTERN_2 = "yyyy/MM/dd HH:mm:ss";
     public static final String DATETIME_PATTERN_3 = "yyMMdd";
+    public static final String DATETIME_PATTERN_4 = "yyyy-MM-dd HH:mm";
 
     /**
      * 仅显示年月日，例如 2015-08-11.
