@@ -7,14 +7,17 @@ import com.nlizzard.service.FriendRequestService;
 import com.nlizzard.utils.PagedGridResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("friendRequest")
 @Slf4j
 @RequiredArgsConstructor
+@Validated
 public class FriendRequestController extends BaseInfoProperties {
 
 
@@ -52,5 +55,17 @@ public class FriendRequestController extends BaseInfoProperties {
                 pageSize);
 
         return GraceJSONResult.ok(result);
+    }
+
+    /**
+     * 通过好友请求接口
+     * @param friendRequestId 好友请求ID，唯一标识一个好友请求记录
+     * @param friendRemark 好友备注信息，可以为空
+     * @return GraceJSONResult对象，表示操作结果
+     */
+    @PostMapping("pass")
+    public GraceJSONResult pass(@NotBlank(message = "请求记录ID不能为空") String friendRequestId, String friendRemark) {
+        friendRequestService.passNewFriend(friendRequestId, friendRemark);
+        return GraceJSONResult.ok();
     }
 }

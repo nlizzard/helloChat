@@ -19,4 +19,11 @@ public interface FriendRequestService {
      * @return 好友请求列表
      */
     PagedGridResult queryNewFriendList(String userId, Integer page, Integer pageSize);
+
+    /**
+     * 通过好友请求
+     * @param friendRequestId 好友请求ID，唯一标识一个好友请求记录
+     * @param friendRemark 好友备注信息
+     */
+    void passNewFriend(String friendRequestId, String friendRemark);
 }
