@@ -1,6 +1,7 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.mapper.FriendshipMapper;
 import com.nlizzard.pojo.Friendship;
@@ -8,7 +9,9 @@ import com.nlizzard.pojo.vo.ContactsVO;
 import com.nlizzard.service.FriendshipService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,5 +39,23 @@ public class FriendshipServiceImpl extends BaseInfoProperties implements Friends
         map.put("needBlack", needBlack);
 
         return friendshipMapper.queryMyFriends(map);
+    }
+
+    // 修改我的好友的备注名
+    @Transactional
+    @Override
+    public void updateFriendRemark(String myId,
+                                   String friendId,
+                                   String friendRemark) {
+
+        LambdaQueryWrapper<Friendship> updateWrapper = new LambdaQueryWrapper<>();
+        updateWrapper.eq(Friendship::getMyId, myId)
+                     .eq(Friendship::getFriendId, friendId);
+
+        Friendship friendship = new Friendship();
+        friendship.setFriendRemark(friendRemark);
+        friendship.setUpdatedTime(LocalDateTime.now());
+
+        friendshipMapper.update(friendship, updateWrapper);
     }
 }

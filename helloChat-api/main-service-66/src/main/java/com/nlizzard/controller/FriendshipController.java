@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,5 +49,26 @@ public class FriendshipController extends BaseInfoProperties {
         String myId = request.getHeader(HEADER_USER_ID);
 
         return GraceJSONResult.ok(friendshipService.queryMyFriends(myId, false));
+    }
+
+    /**
+     * 更新好友备注接口
+     * @param request HttpServletRequest对象，用于获取用户ID等信息
+     * @param friendId 好友ID
+     * @param friendRemark 好友备注信息
+     * @return GraceJSONResult对象，表示操作结果
+     */
+    @PostMapping("updateFriendRemark")
+    public GraceJSONResult updateFriendRemark(HttpServletRequest request,
+                                              String friendId,
+                                              String friendRemark) {
+
+        if (StringUtils.isBlank(friendId) || StringUtils.isBlank(friendRemark)) {
+            return GraceJSONResult.error();
+        }
+
+        String myId = request.getHeader(HEADER_USER_ID);
+        friendshipService.updateFriendRemark(myId, friendId, friendRemark);
+        return GraceJSONResult.ok();
     }
 }

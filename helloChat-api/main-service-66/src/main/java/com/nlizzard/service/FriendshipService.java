@@ -22,4 +22,13 @@ public interface FriendshipService {
      * @return 好友列表，包含好友的基本信息和备注信息等，如果没有好友则返回空列表
      */
     List<ContactsVO> queryMyFriends(String myId, boolean needBlack);
+
+    /**
+     * 修改我的好友的备注名
+     * @param myId 我的ID
+     * @param friendId 好友ID
+     * @param friendRemark 好友备注名
+     */
+    void updateFriendRemark(String myId,String friendId,String friendRemark);
+
 }
