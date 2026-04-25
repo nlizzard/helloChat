@@ -19,4 +19,12 @@ public interface FriendCircleService{
      * @return 分页结果
      */
     PagedGridResult queryList(String userId,Integer page,Integer pageSize);
+
+    /**
+     * 点赞/取消点赞朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param userId 用户ID
+     * @param tag 点赞/取消点赞标识
+     */
+    void toggleLike(String friendCircleId,String userId,String tag);
 }

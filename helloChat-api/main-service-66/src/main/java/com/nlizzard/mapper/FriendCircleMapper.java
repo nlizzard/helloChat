@@ -11,6 +11,7 @@ import java.util.Map;
 
 public interface FriendCircleMapper extends BaseMapper<FriendCircle> {
 
+    // 查询朋友圈列表
     Page<FriendCircleVO> queryFriendCircleList(
             @Param("page") Page<FriendCircleVO> page,
             @Param("paramMap") Map<String, Object> map);

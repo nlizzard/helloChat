@@ -68,4 +68,36 @@ public class FriendCircleController extends BaseInfoProperties {
 
         return GraceJSONResult.ok(gridResult);
     }
+
+    /**
+     * 点赞朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param request 请求对象
+     * @return 结果
+     */
+    @PostMapping("like")
+    public GraceJSONResult like(String friendCircleId,
+                                HttpServletRequest request) {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+        friendCircleService.toggleLike(friendCircleId, userId,"like");
+
+        return GraceJSONResult.ok();
+    }
+
+    /**
+     * 取消点赞朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param request 请求对象
+     * @return 结果
+     */
+    @PostMapping("unlike")
+    public GraceJSONResult unlike(String friendCircleId,
+                                  HttpServletRequest request) {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+        friendCircleService.toggleLike(friendCircleId, userId,"unlike");
+
+        return GraceJSONResult.ok();
+    }
 }
