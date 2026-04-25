@@ -1,6 +1,7 @@
 package com.nlizzard.controller;
 
 import com.nlizzard.api.feign.UserInfoMicroServiceFeign;
+import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.config.MinIOConfig;
 import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.grace.result.ResponseStatusEnum;
@@ -9,6 +10,7 @@ import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
 import com.nlizzard.utils.QrCodeUtils;
 import io.micrometer.common.util.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +31,7 @@ import static com.nlizzard.grace.result.ResponseStatusEnum.FILE_UPLOAD_FAILD;
 @RequestMapping("file")
 @Validated
 @RequiredArgsConstructor
-public class FileController {
+public class FileController extends BaseInfoProperties {
 
     private final MinIOConfig minIOConfig;
 
@@ -199,6 +201,35 @@ public class FileController {
         UsersVO usersVO = JsonUtils.jsonToPojo(json, UsersVO.class);
 
         return GraceJSONResult.ok(usersVO);
+    }
+
+    /**
+     * 上传朋友圈图片接口
+     * @param file 朋友圈图片文件
+     * @param request 请求对象
+     * @return 朋友圈图片URL地址
+     */
+    @PostMapping("uploadFriendCircleImage")
+    public GraceJSONResult uploadFriendCircleImage(@RequestParam("file") MultipartFile file
+                                                        , HttpServletRequest request) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+
+        String filename = file.getOriginalFilename();   // 获得文件原始名称
+        if (org.apache.commons.lang3.StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "friendCircleImage"
+                + "/" + userId
+                + "/" + dealWithoutFilename(filename);
+
+        String imageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream(),
+                true);
+
+        return GraceJSONResult.ok(imageUrl);
     }
 
 
