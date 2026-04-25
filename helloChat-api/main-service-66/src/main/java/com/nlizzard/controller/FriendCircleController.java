@@ -43,7 +43,7 @@ public class FriendCircleController extends BaseInfoProperties {
         String words = friendCircleBO.getWords();
         String video = friendCircleBO.getVideo();
 
-        if(StringUtils.isBlank(images) || StringUtils.isBlank(words) || StringUtils.isBlank(video)){
+        if(StringUtils.isBlank(words) || (StringUtils.isBlank(video) && StringUtils.isBlank(images))){
             return GraceJSONResult.errorMsg("朋友圈发布内容不能为空！");
         }
 
