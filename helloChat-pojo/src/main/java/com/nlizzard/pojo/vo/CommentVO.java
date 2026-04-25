@@ -29,7 +29,7 @@ public class CommentVO {
     private String commentUserFace;
     private String commentContent;
 
-    private String replyedUserNickname;
+    private String replyUserNickname;
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using= LocalDateTimeDeserializer.class)

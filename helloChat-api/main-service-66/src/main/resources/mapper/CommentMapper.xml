@@ -14,7 +14,7 @@
             u.face as commentUserFace,
             c.father_id as fatherId,
             c.comment_content as commentContent,
-            fu.nickname as replyedUserNickname,
+            fu.nickname as replyUserNickname,
             c.created_time as createdTime
         from
             `comment` as c
