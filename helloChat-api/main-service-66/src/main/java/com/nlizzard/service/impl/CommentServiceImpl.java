@@ -1,5 +1,6 @@
 package com.nlizzard.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.mapper.CommentMapper;
 import com.nlizzard.pojo.Comment;
@@ -58,5 +59,18 @@ public class CommentServiceImpl extends BaseInfoProperties implements CommentSer
         commentVO.setCommentId(pendingComment.getId());
 
         return commentVO;
+    }
+
+    // 删除朋友圈的评论
+    @Transactional
+    @Override
+    public void deleteComment(String commentUserId,String commentId,String friendCircleId) {
+
+        LambdaQueryWrapper<Comment> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(Comment::getId, commentId)
+                    .eq(Comment::getCommentUserId, commentUserId)
+                    .eq(Comment::getFriendCircleId, friendCircleId);
+
+        commentMapper.delete(deleteWrapper);
     }
 }
