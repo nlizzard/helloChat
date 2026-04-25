@@ -4,15 +4,14 @@ import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.pojo.bo.FriendCircleBO;
 import com.nlizzard.service.FriendCircleService;
+import com.nlizzard.utils.PagedGridResult;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("friendCircle")
@@ -49,5 +48,24 @@ public class FriendCircleController extends BaseInfoProperties {
         friendCircleService.publish(friendCircleBO);
 
         return GraceJSONResult.ok();
+    }
+
+    /**
+     * 查询朋友圈列表
+     * @param request 请求对象
+     * @param page 页码
+     * @param pageSize 每页条数
+     * @return 结果
+     */
+    @PostMapping("queryList")
+    public GraceJSONResult publish(HttpServletRequest request,
+                                   @RequestParam(defaultValue = "1", name = "page") Integer page,
+                                   @RequestParam(defaultValue = "10", name = "pageSize") Integer pageSize) {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+
+        PagedGridResult gridResult = friendCircleService.queryList(userId, page, pageSize);
+
+        return GraceJSONResult.ok(gridResult);
     }
 }
