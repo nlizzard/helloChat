@@ -1,7 +1,10 @@
 package com.nlizzard.service;
 
+import com.nlizzard.pojo.FriendCircleLiked;
 import com.nlizzard.pojo.bo.FriendCircleBO;
 import com.nlizzard.utils.PagedGridResult;
+
+import java.util.List;
 
 public interface FriendCircleService{
 
@@ -27,4 +30,19 @@ public interface FriendCircleService{
      * @param tag 点赞/取消点赞标识
      */
     void toggleLike(String friendCircleId,String userId,String tag);
+
+    /**
+     * 查询朋友圈的点赞列表
+     * @param friendCircleId 朋友圈ID
+     * @return 点赞列表
+     */
+    List<FriendCircleLiked> queryLikedFriends(String friendCircleId);
+
+    /**
+     * 判断当前用户是否点赞过朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param userId 用户ID
+     * @return 是否点赞过
+     */
+    boolean isLike(String friendCircleId, String userId);
 }

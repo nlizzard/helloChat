@@ -2,7 +2,11 @@ package com.nlizzard.controller;
 
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.pojo.FriendCircleLiked;
 import com.nlizzard.pojo.bo.FriendCircleBO;
+import com.nlizzard.pojo.vo.CommentVO;
+import com.nlizzard.pojo.vo.FriendCircleVO;
+import com.nlizzard.service.CommentService;
 import com.nlizzard.service.FriendCircleService;
 import com.nlizzard.utils.PagedGridResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +24,8 @@ public class FriendCircleController extends BaseInfoProperties {
 
 
     private final FriendCircleService friendCircleService;
+
+    private final CommentService commentService;
 
 
     /**
@@ -58,7 +64,7 @@ public class FriendCircleController extends BaseInfoProperties {
      * @return 结果
      */
     @PostMapping("queryList")
-    public GraceJSONResult publish(HttpServletRequest request,
+    public GraceJSONResult queryFriendCircleList(HttpServletRequest request,
                                    @RequestParam(defaultValue = "1", name = "page") Integer page,
                                    @RequestParam(defaultValue = "10", name = "pageSize") Integer pageSize) {
 
@@ -66,6 +72,22 @@ public class FriendCircleController extends BaseInfoProperties {
 
         PagedGridResult gridResult = friendCircleService.queryList(userId, page, pageSize);
 
+        // 查询朋友圈的点赞列表、评论列表，以及当前用户是否点赞过朋友圈
+        List<FriendCircleVO> list = (List<FriendCircleVO>)gridResult.getRows();
+        // 遍历朋友圈列表，查询点赞列表、评论列表，以及当前用户是否点赞过朋友圈
+        for (FriendCircleVO f : list) {
+            // 查询朋友圈的点赞列表,塞到VO对象中
+            String friendCircleId = f.getFriendCircleId();
+            List<FriendCircleLiked> likedList = friendCircleService.queryLikedFriends(friendCircleId);
+            f.setLikedFriends(likedList);
+
+            // 判断当前用户是否点赞过朋友圈
+            boolean res = friendCircleService.isLike(friendCircleId, userId);
+            f.setDoILike(res);
+
+            List<CommentVO> commentList = commentService.queryAll(friendCircleId);
+            f.setCommentList(commentList);
+        }
         return GraceJSONResult.ok(gridResult);
     }
 
@@ -99,5 +121,17 @@ public class FriendCircleController extends BaseInfoProperties {
         friendCircleService.toggleLike(friendCircleId, userId,"unlike");
 
         return GraceJSONResult.ok();
+    }
+
+    /**
+     * 查询朋友圈的点赞列表
+     * @param friendCircleId 朋友圈ID
+     * @return 结果
+     */
+    @PostMapping("likedFriends")
+    public GraceJSONResult likedFriends(String friendCircleId) {
+        List<FriendCircleLiked> likedList =
+                friendCircleService.queryLikedFriends(friendCircleId);
+        return GraceJSONResult.ok(likedList);
     }
 }

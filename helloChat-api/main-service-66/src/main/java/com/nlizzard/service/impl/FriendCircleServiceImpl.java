@@ -1,7 +1,6 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.mapper.FriendCircleLikedMapper;
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -31,7 +31,7 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
 
     private final UsersService usersService;
 
-    private final FriendCircleLikedMapper circleLikedMapper;
+    private final FriendCircleLikedMapper friendCircleLikedMapper;
 
     // 发布朋友圈
     @Transactional
@@ -71,14 +71,14 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
         wrapper.eq(FriendCircleLiked::getFriendCircleId, friendCircleId)
                     .eq(FriendCircleLiked::getLikedUserId, userId);
 
-        FriendCircleLiked friendCircleLiked = circleLikedMapper.selectOne(wrapper);
+        FriendCircleLiked friendCircleLiked = friendCircleLikedMapper.selectOne(wrapper);
 
 
         // 2.1 取消点赞
         if("unlike".equals(tag)){
 
             // 从数据库中删除点赞关系
-            if(friendCircleLiked != null) circleLikedMapper.delete(wrapper);
+            if(friendCircleLiked != null) friendCircleLikedMapper.delete(wrapper);
 
             // 可做业务统计
             // 取消点赞过后，朋友圈的对应点赞数累减1
@@ -106,7 +106,7 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
         circleLiked.setLikedUserName(users.getNickname());
         circleLiked.setCreatedTime(LocalDateTime.now());
 
-        circleLikedMapper.insert(circleLiked);
+        friendCircleLikedMapper.insert(circleLiked);
 
         // 可做业务统计
         // 点赞过后，朋友圈的对应点赞数累加1
@@ -120,5 +120,26 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
     private FriendCircle selectFriendCircle(String friendCircleId) {
 
         return friendCircleMapper.selectById(friendCircleId);
+    }
+
+    // 查询朋友圈的点赞列表
+    @Override
+    public List<FriendCircleLiked> queryLikedFriends(String friendCircleId) {
+        LambdaQueryWrapper<FriendCircleLiked> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FriendCircleLiked::getFriendCircleId, friendCircleId);
+
+        return friendCircleLikedMapper.selectList(queryWrapper);
+    }
+
+    // 判断当前用户是否点赞过朋友圈
+    @Override
+    public boolean isLike(String friendCircleId, String userId) {
+        LambdaQueryWrapper<FriendCircleLiked> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FriendCircleLiked::getFriendCircleId, friendCircleId)
+                    .eq(FriendCircleLiked::getLikedUserId, userId);
+
+        FriendCircleLiked friendCircleLiked = friendCircleLikedMapper.selectOne(queryWrapper);
+
+        return friendCircleLiked != null;
     }
 }
