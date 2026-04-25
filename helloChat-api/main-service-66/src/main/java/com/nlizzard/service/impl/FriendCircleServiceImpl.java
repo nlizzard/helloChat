@@ -2,14 +2,18 @@ package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.nlizzard.base.BaseInfoProperties;
+import com.nlizzard.mapper.CommentMapper;
 import com.nlizzard.mapper.FriendCircleLikedMapper;
 import com.nlizzard.mapper.FriendCircleMapper;
+import com.nlizzard.pojo.Comment;
 import com.nlizzard.pojo.FriendCircle;
 import com.nlizzard.pojo.FriendCircleLiked;
 import com.nlizzard.pojo.Users;
 import com.nlizzard.pojo.bo.FriendCircleBO;
 import com.nlizzard.pojo.vo.FriendCircleVO;
+import com.nlizzard.service.CommentService;
 import com.nlizzard.service.FriendCircleService;
 import com.nlizzard.service.UsersService;
 import com.nlizzard.utils.PagedGridResult;
@@ -32,6 +36,8 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
     private final UsersService usersService;
 
     private final FriendCircleLikedMapper friendCircleLikedMapper;
+
+    private final CommentMapper commentMapper;
 
     // 发布朋友圈
     @Transactional
@@ -141,5 +147,28 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
         FriendCircleLiked friendCircleLiked = friendCircleLikedMapper.selectOne(queryWrapper);
 
         return friendCircleLiked != null;
+    }
+
+    // 删除朋友圈
+    @Transactional
+    @Override
+    public void delete(String friendCircleId, String userId) {
+
+        LambdaQueryWrapper<FriendCircle> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(FriendCircle::getId, friendCircleId)
+                     .eq(FriendCircle::getUserId, userId);
+        // 删除朋友圈记录
+        friendCircleMapper.delete(deleteWrapper);
+
+        // 删除相关评论记录（孤儿数据）
+        LambdaQueryWrapper<Comment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(Comment::getFriendCircleId, friendCircleId);
+        commentMapper.delete(commentWrapper);
+
+        // 删除相关点赞记录（孤儿数据）
+        LambdaQueryWrapper<FriendCircleLiked> likedWrapper = new LambdaQueryWrapper<>();
+        likedWrapper.eq(FriendCircleLiked::getFriendCircleId, friendCircleId);
+        friendCircleLikedMapper.delete(likedWrapper);
+
     }
 }

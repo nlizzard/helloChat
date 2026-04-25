@@ -10,6 +10,7 @@ import com.nlizzard.service.CommentService;
 import com.nlizzard.service.FriendCircleService;
 import com.nlizzard.utils.PagedGridResult;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -133,5 +134,21 @@ public class FriendCircleController extends BaseInfoProperties {
         List<FriendCircleLiked> likedList =
                 friendCircleService.queryLikedFriends(friendCircleId);
         return GraceJSONResult.ok(likedList);
+    }
+
+    /**
+     * 删除朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param request 请求对象
+     * @return 结果
+     */
+    @PostMapping("delete")
+    public GraceJSONResult delete(@NotBlank(message = "朋友圈ID不能为空") String friendCircleId,
+                                  HttpServletRequest request) {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+        friendCircleService.delete(friendCircleId, userId);
+
+        return GraceJSONResult.ok();
     }
 }

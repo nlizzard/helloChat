@@ -45,4 +45,11 @@ public interface FriendCircleService{
      * @return 是否点赞过
      */
     boolean isLike(String friendCircleId, String userId);
+
+    /**
+     * 删除朋友圈
+     * @param friendCircleId 朋友圈ID
+     * @param userId 用户ID
+     */
+    void delete(String friendCircleId, String userId);
 }
