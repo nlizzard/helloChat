@@ -15,9 +15,9 @@ public class ChatServer {
     public static void main(String[] args) throws Exception {
 
         // 定义主从线程组
-        // 定义主线程池，用于接受客户端的连接，但是不做任何处理，比如老板会谈业务，拉到业务就会交给下面的员工去做了
+        // 定义主线程池，用于接受客户端的连接，但是不做任何处理
         EventLoopGroup bossGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
-        // 定义从线程池，处理主线程池交过来的任务，公司业务员开展业务，完成老板交代的任务
+        // 定义从线程池，处理主线程池交过来的任务，真正进行业务处理的线程池
         EventLoopGroup workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 
         try {
