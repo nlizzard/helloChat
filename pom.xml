@@ -21,6 +21,7 @@
         <module>helloChat-pojo</module>
         <module>helloChat-api</module>
         <module>helloChat-gateway-1000</module>
+        <module>helloChat-chat-875</module>
     </modules>
 
     <properties>
@@ -42,6 +43,8 @@
         <commons.io.version>2.14.0</commons.io.version>
         <!-- 二维码生成工具版本管理-->
         <zxing.version>3.5.4</zxing.version>
+        <!--netty版本管理-->
+        <netty.version>4.2.12.Final</netty.version>
     </properties>
 
 
@@ -114,7 +117,12 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+                <scope>compile</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

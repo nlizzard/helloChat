@@ -90,12 +90,14 @@ public class PassportController extends BaseInfoProperties {
      * @param userId 用户ID
      */
     @GetMapping("logout")
-    public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId)  {
+    public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId
+                                    ,HttpServletRequest request)  {
         // 清理用户的分布式会话
         // 限制用户在一台设备进行登录->登出
-        redis.del(REDIS_USER_TOKEN + ":" + userId);
+//        redis.del(REDIS_USER_TOKEN + ":" + userId);
         // 允许用户在多端多设备进行登录->登出
-        //redis.del(REDIS_USER_TOKEN + ":" + uToken);
+        String uToken = request.getHeader(HEADER_USER_TOKEN);
+        redis.del(REDIS_USER_TOKEN + ":" + uToken);
         return GraceJSONResult.ok();
     }
 }

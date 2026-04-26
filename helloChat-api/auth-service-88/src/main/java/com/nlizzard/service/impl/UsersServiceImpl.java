@@ -135,10 +135,12 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
 
         // 设置用户分布式会话，保存用户的token令牌，存储到redis中
         String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
+
         // 本方式只能限制用户在一台设备进行登录
-        redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);   // 设置分布式会话
+        //redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);   // 设置分布式会话
+
         // 本方式允许用户在多端多设备进行登录
-        //redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());   // 设置分布式会话
+        redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());   // 设置分布式会话
 
         // 返回用户数据给前端
         UsersVO usersVO = new UsersVO();
