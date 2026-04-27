@@ -9,6 +9,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * 初始化器，channel注册后，会执行里面的相应的初始化方法
  */
@@ -35,6 +37,11 @@ public class WSServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new HttpObjectAggregator(1024 * 64));
 
         // ==================== 以上是用于支持http协议相关的handler ====================
+
+
+        // 心跳机制 客户端每30秒发送一次心跳，如果超过90秒没有收到客户端的心跳，就认为客户端已经断开连接了
+        pipeline.addLast(new IdleStateHandler(90,0,0));
+        pipeline.addLast(new HeartBeatHandler());
 
 
         // ==================== 以下是用于支持websocket ====================

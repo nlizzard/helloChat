@@ -52,6 +52,10 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         System.out.println("客户端currentChannelIdShort：" + currentChannelIdShort);
 
         // 2. 判断消息类型，根据不同的类型来处理不同的业务
+        if(Objects.equals(msgType,MsgTypeEnum.KEEPALIVE.type)){
+            // 心跳保活消息，直接返回
+            return ;
+        }
         if (Objects.equals(msgType, MsgTypeEnum.CONNECT_INIT.type)) {
             // 当websocket初次open的时候，初始化channel，把channel和用户userid关联起来
             UserChannelSession.putMultiChannels(senderId, currentChannel);

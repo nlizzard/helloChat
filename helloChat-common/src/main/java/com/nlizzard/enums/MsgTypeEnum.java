@@ -14,7 +14,7 @@ public enum MsgTypeEnum {
 
 
     SIGNED(8, "消息签收"),
-    KEEPALIVE(9, "客户端保持心跳"),
+    KEEPALIVE(5, "客户端保持心跳"),
     heart(10, "拉取好友");
 
     public final Integer type;
