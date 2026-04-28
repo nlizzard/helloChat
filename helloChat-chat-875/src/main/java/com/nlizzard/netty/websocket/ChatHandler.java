@@ -2,6 +2,8 @@ package com.nlizzard.netty.websocket;
 
 
 import com.nlizzard.enums.MsgTypeEnum;
+import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.netty.utils.OkHttpUtil;
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.pojo.netty.DataContent;
 import com.nlizzard.utils.JsonUtils;
@@ -30,26 +32,28 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
                                 TextWebSocketFrame msg) throws Exception {
         // 获得客户端传输过来的消息
         String content = msg.text();
-        System.out.println("接受到的数据：" + content);
 
         // 1. 获取客户端发来的消息并且解析
         DataContent dataContent = JsonUtils.jsonToPojo(content, DataContent.class);
         ChatMsg chatMsg = dataContent.getChatMsg();
-
-        String msgText = chatMsg.getMsg();
         String receiverId = chatMsg.getReceiverId();
         String senderId = chatMsg.getSenderId();
         Integer msgType = chatMsg.getMsgType();
-        System.out.println("客户端消息：" + msgText);
-        System.out.println("客户端消息发送人ID：" + receiverId);
+
+        // 判断是否黑名单 start
+        // 如果双方只要有一方是黑名单，则终止发送
+        GraceJSONResult result = OkHttpUtil.get("http://127.0.0.1:1000/friendship/isBlack?friendId1st=" + receiverId
+                + "&friendId2nd=" + senderId);
+        boolean isBlack = (Boolean)result.getData();
+        System.out.println("当前的黑名单关系为: " + isBlack);
+        if (isBlack) {
+            return;
+        }
+        // 判断是否黑名单 end
 
         // 获取channel
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
-        String currentChannelIdShort = currentChannel.id().asShortText();
-
-        System.out.println("客户端currentChannelId：" + currentChannelId);
-        System.out.println("客户端currentChannelIdShort：" + currentChannelIdShort);
 
         // 2. 判断消息类型，根据不同的类型来处理不同的业务
         if(Objects.equals(msgType,MsgTypeEnum.KEEPALIVE.type)){
