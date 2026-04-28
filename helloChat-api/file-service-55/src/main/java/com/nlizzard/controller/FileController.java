@@ -11,9 +11,7 @@ import com.nlizzard.utils.MinIOUtils;
 import com.nlizzard.utils.QrCodeUtils;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,7 +27,6 @@ import static com.nlizzard.grace.result.ResponseStatusEnum.FILE_UPLOAD_FAILD;
 
 @RestController
 @RequestMapping("file")
-@Validated
 @RequiredArgsConstructor
 public class FileController extends BaseInfoProperties {
 
@@ -39,8 +36,9 @@ public class FileController extends BaseInfoProperties {
 
     // springboot文件上传实现方案一（传统单体项目可使用）
     @PostMapping("uploadFace1")
-    public GraceJSONResult uploadFace1(@RequestParam("file") MultipartFile file,
-                                       @RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
+    public GraceJSONResult uploadFace1(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
 
         // abc.123.456.png
         String filename = file.getOriginalFilename();   // 获得文件原始名称
@@ -74,8 +72,9 @@ public class FileController extends BaseInfoProperties {
 
     // 分布式存储技术方案minIO实现文件上传（微服务项目推荐使用）
     @PostMapping("uploadFace")
-    public GraceJSONResult uploadFace(@RequestParam("file") MultipartFile file,
-                                      @RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
+    public GraceJSONResult uploadFace(HttpServletRequest request,
+                                    @RequestParam("file") MultipartFile file) throws Exception {
+        String userId = request.getHeader(HEADER_USER_ID);
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (StringUtils.isBlank(filename)) {
@@ -105,13 +104,13 @@ public class FileController extends BaseInfoProperties {
     /**
      * 生成微信二维码，并上传到minIO中
      * @param wechatNumber 微信号
-     * @param userId 用户ID
      * @return 微信二维码存放路径
      */
     @PostMapping("generatorQrCode")
-    public String generatorQrCode(String wechatNumber,
-                                  String userId) throws Exception {
+    public String generatorQrCode(HttpServletRequest request,
+                                  @RequestParam("wechatNumber")String wechatNumber) throws Exception {
 
+        String userId = request.getHeader(HEADER_USER_ID);
         // 构建map对象
         Map<String, String> map = new HashMap<>();
         map.put("wechatNumber", wechatNumber);
@@ -136,12 +135,13 @@ public class FileController extends BaseInfoProperties {
     /**
      * 上传朋友圈背景图接口
      * @param file 朋友圈背景图文件
-     * @param userId 用户ID
      * @return 朋友圈背景图URL地址
      */
     @PostMapping("uploadFriendCircleBg")
-    public GraceJSONResult uploadFriendCircleBg(@RequestParam("file") MultipartFile file,
-                                                @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
+    public GraceJSONResult uploadFriendCircleBg(HttpServletRequest request,
+                                                @RequestParam("file") MultipartFile file) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
         // 获得文件原始名称
         String filename = file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {
@@ -168,14 +168,15 @@ public class FileController extends BaseInfoProperties {
     }
 
     /**
-     * 上传聊天图片接口
-     * @param file 聊天图片文件
-     * @param userId 用户ID
-     * @return 聊天图片URL地址
+     * 上传聊天背景图接口
+     * @param file 聊天背景图文件
+     * @return 聊天背景图URL地址
      */
     @PostMapping("uploadChatBg")
-    public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file,
-                                           @NotBlank(message = "用户ID不能为空") String userId) throws Exception {
+    public GraceJSONResult uploadChatBg(HttpServletRequest request,
+                                        @RequestParam("file") MultipartFile file) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
 
         String filename = file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {
@@ -206,12 +207,11 @@ public class FileController extends BaseInfoProperties {
     /**
      * 上传朋友圈图片接口
      * @param file 朋友圈图片文件
-     * @param request 请求对象
      * @return 朋友圈图片URL地址
      */
     @PostMapping("uploadFriendCircleImage")
-    public GraceJSONResult uploadFriendCircleImage(@RequestParam("file") MultipartFile file
-                                                        , HttpServletRequest request) throws Exception {
+    public GraceJSONResult uploadFriendCircleImage(HttpServletRequest request,
+                                                   @RequestParam("file") MultipartFile file) throws Exception {
 
         String userId = request.getHeader(HEADER_USER_ID);
 
@@ -236,12 +236,11 @@ public class FileController extends BaseInfoProperties {
     /**
      * 上传聊天图片消息
      * @param file 聊天图片文件
-     * @param request 请求对象
      * @return 聊天图片URL地址
      */
     @PostMapping("uploadChatPhoto")
-    public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file
-            , HttpServletRequest request) throws Exception {
+    public GraceJSONResult uploadChatPhoto(HttpServletRequest request,
+                                           @RequestParam("file") MultipartFile file) throws Exception {
 
         String userId = request.getHeader(HEADER_USER_ID);
 
