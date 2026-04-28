@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -120,16 +122,12 @@ public class FileController extends BaseInfoProperties {
         String data = JsonUtils.objectToJson(map);
 
         // 生成二维码
-        String qrCodePath = QrCodeUtils.generateQRCode(data);
+        InputStream qrCode = QrCodeUtils.generateQRCodeInputStream(data);
 
         // 把二维码上传到minio中
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(qrCodePath)) {
-            String uuid = UUID.randomUUID().toString();
-            String objectName = "wechatNumber" + "/" + userId + "/" + uuid + ".png";
-            return MinIOUtils.uploadFile(minIOConfig.getBucketName(), objectName, qrCodePath, true);
-        }
-
-        return null;
+        String uuid = UUID.randomUUID().toString();
+        String objectName = "wechatNumber" + "/" + userId + "/" + uuid + ".png";
+        return MinIOUtils.uploadFile(minIOConfig.getBucketName(), objectName, qrCode,true);
     }
 
     /**
