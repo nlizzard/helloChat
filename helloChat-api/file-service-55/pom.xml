@@ -28,6 +28,17 @@
             <artifactId>base-service</artifactId>
             <version>1.0</version>
         </dependency>
+        <!-- 引入 jcodec进行视频处理 -->
+        <dependency>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec</artifactId>
+            <version>0.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec-javase</artifactId>
+            <version>0.2.5</version>
+        </dependency>
     </dependencies>
 
 

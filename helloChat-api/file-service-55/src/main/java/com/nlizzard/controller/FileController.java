@@ -1,11 +1,15 @@
 package com.nlizzard.controller;
 
+import com.nlizzard.ChatFileTypeEnum;
 import com.nlizzard.api.feign.UserInfoMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.config.MinIOConfig;
+import com.nlizzard.exceptions.GraceException;
 import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.pojo.vo.UsersVO;
+import com.nlizzard.pojo.vo.VideoMsgVO;
+import com.nlizzard.utils.JcodecVideoUtil;
 import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.MinIOUtils;
 import com.nlizzard.utils.QrCodeUtils;
@@ -18,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -176,20 +179,7 @@ public class FileController extends BaseInfoProperties {
 
         String userId = request.getHeader(HEADER_USER_ID);
 
-        String filename = file.getOriginalFilename();
-        if (StringUtils.isBlank(filename)) {
-            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
-        }
-
-        filename = "chat"
-                + "/" + userId
-                + "/" + "photo"
-                + "/" + dealWithoutFilename(filename);
-
-        String chatImageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
-                filename,
-                file.getInputStream(),
-                true);
+        String chatImageUrl = uploadForChatFiles(file,userId, ChatFileTypeEnum.CHAT_BG);
 
         // 微服务远程调用更新用户聊天背景图到数据库 OpenFeign
         GraceJSONResult jsonResult = userInfoMicroServiceFeign
@@ -214,7 +204,7 @@ public class FileController extends BaseInfoProperties {
         String userId = request.getHeader(HEADER_USER_ID);
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
-        if (org.apache.commons.lang3.StringUtils.isBlank(filename)) {
+        if (StringUtils.isBlank(filename)) {
             return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
         }
 
@@ -242,22 +232,80 @@ public class FileController extends BaseInfoProperties {
 
         String userId = request.getHeader(HEADER_USER_ID);
 
+        String imageUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.IMAGE);
+
+        return GraceJSONResult.ok(imageUrl);
+    }
+
+    /**
+     * 上传聊天视频消息
+     * @param file 聊天视频文件
+     * @return VideoMsgVO对象，包含视频URL地址和封面URL地址
+     */
+    @PostMapping("uploadChatVideo")
+    public GraceJSONResult uploadChatVideo(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+
+        String videoUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.VIDEO);
+
+        // 帧，封面获取 = 视频截帧 截取第一帧
+        String coverName = UUID.randomUUID() + ".jpg";   // 视频封面的名称
+        InputStream coverFile =  JcodecVideoUtil.fetchFrameInputStream(file);
+
+        // 上传封面到minio
+        String coverUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                coverName,
+                coverFile,
+                true);
+
+        VideoMsgVO videoMsgVO = new VideoMsgVO();
+        videoMsgVO.setVideoPath(videoUrl);
+        videoMsgVO.setCover(coverUrl);
+
+        return GraceJSONResult.ok(videoMsgVO);
+    }
+
+    /**
+     * 上传聊天语音消息
+     * @param file 聊天语音文件
+     * @return 聊天语音URL地址
+     */
+    @PostMapping("uploadChatVoice")
+    public GraceJSONResult uploadChatVoice(HttpServletRequest request,
+                                           @RequestParam("file") MultipartFile file) throws Exception {
+        String userId = request.getHeader(HEADER_USER_ID);
+        String voiceUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.VOICE);
+
+        return GraceJSONResult.ok(voiceUrl);
+    }
+
+    /**
+     * 上传聊天文件到minIO（例如：聊天背景图、图片、音频、视频等）
+     * @param file 聊天文件
+     * @param userId 用户ID
+     * @param fileType 文件类型枚举
+     * @return 聊天文件URL地址
+     * @throws Exception 文件上传异常
+     */
+    private String uploadForChatFiles(MultipartFile file,
+                                      String userId,
+                                      ChatFileTypeEnum fileType) throws Exception {
+
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (org.apache.commons.lang3.StringUtils.isBlank(filename)) {
-            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+            GraceException.display(ResponseStatusEnum.FILE_UPLOAD_FAILD);
         }
 
         filename = "chat"
                 + "/" + userId
-                + "/" + "photo"
+                + "/" + fileType.path
                 + "/" + dealWithoutFilename(filename);
 
-        String imageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+        return MinIOUtils.uploadFile(minIOConfig.getBucketName(),
                 filename,
                 file.getInputStream(),
                 true);
-
-        return GraceJSONResult.ok(imageUrl);
     }
 
 
