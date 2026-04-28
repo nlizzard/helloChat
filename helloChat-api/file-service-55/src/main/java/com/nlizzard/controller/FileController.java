@@ -234,6 +234,37 @@ public class FileController extends BaseInfoProperties {
 
 
     /**
+     * 上传聊天图片消息
+     * @param file 聊天图片文件
+     * @param request 请求对象
+     * @return 聊天图片URL地址
+     */
+    @PostMapping("uploadChatPhoto")
+    public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file
+            , HttpServletRequest request) throws Exception {
+
+        String userId = request.getHeader(HEADER_USER_ID);
+
+        String filename = file.getOriginalFilename();   // 获得文件原始名称
+        if (org.apache.commons.lang3.StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "chat"
+                + "/" + userId
+                + "/" + "photo"
+                + "/" + dealWithoutFilename(filename);
+
+        String imageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream(),
+                true);
+
+        return GraceJSONResult.ok(imageUrl);
+    }
+
+
+    /**
      * 处理文件名称，生成新的文件名称，格式：原文件名称-uuid.后缀
      * @param filename 原文件名称
      * @return 新文件名称
