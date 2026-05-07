@@ -42,17 +42,6 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         String senderId = chatMsg.getSenderId();
         Integer msgType = chatMsg.getMsgType();
 
-        // 判断是否黑名单 start
-        // 如果双方只要有一方是黑名单，则终止发送
-        GraceJSONResult result = OkHttpUtil.get("http://127.0.0.1:1000/friendship/isBlack?friendId1st=" + receiverId
-                + "&friendId2nd=" + senderId);
-        boolean isBlack = (Boolean)result.getData();
-        System.out.println("当前的黑名单关系为: " + isBlack);
-        if (isBlack) {
-            return;
-        }
-        // 判断是否黑名单 end
-
         // 获取channel
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
@@ -75,14 +64,29 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 设置消息的发送时间,以服务器的时间为准
             chatMsg.setChatTime(LocalDateTime.now());
 
+            // 判断是否黑名单 start
+            // 如果双方只要有一方是黑名单，则终止发送
+            GraceJSONResult result = OkHttpUtil.get("http://127.0.0.1:1000/friendship/isBlack?friendId1st=" + receiverId
+                    + "&friendId2nd=" + senderId);
+            boolean isBlack = false;
+            if (result != null) {
+                isBlack = (boolean)result.getData();
+            }
+            if (isBlack) {
+                return;
+            }
+            // 判断是否黑名单 end
+
             // 生成消息的唯一id
             String id = IdWorker.getIdStr();
             chatMsg.setMsgId(id);
+            // 异步消息，保存信息到数据库表
+            MessagePublisher.sendMsgToSave(chatMsg);
 
             // 发送消息
             List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
             if (receiverChannels == null || receiverChannels.isEmpty()) {
-                // receiverChannels为空，表示用户离线/断线状态，消息不需要发送，TODO: 存储到数据库
+                // receiverChannels为空，表示用户离线/断线状态，消息不需要发送
                 chatMsg.setIsReceiverOnLine(false);
             } else {
                 chatMsg.setIsReceiverOnLine(true);
@@ -130,8 +134,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             }
         }
 
-        // 异步消息，保存信息到数据库表
-        MessagePublisher.sendMsgToSave(chatMsg);
+
     }
 
     /**
@@ -168,6 +171,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
+        cause.printStackTrace();
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
         System.out.println("发生异常捕获，channel对应的长id为：" + currentChannelId);
