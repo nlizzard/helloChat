@@ -1,8 +1,10 @@
 package com.nlizzard.netty.websocket;
 
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.nlizzard.enums.MsgTypeEnum;
 import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.netty.mq.MessagePublisher;
 import com.nlizzard.netty.utils.OkHttpUtil;
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.pojo.netty.DataContent;
@@ -73,6 +75,10 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 设置消息的发送时间,以服务器的时间为准
             chatMsg.setChatTime(LocalDateTime.now());
 
+            // 生成消息的唯一id
+            String id = IdWorker.getIdStr();
+            chatMsg.setMsgId(id);
+
             // 发送消息
             List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
             if (receiverChannels == null || receiverChannels.isEmpty()) {
@@ -123,6 +129,9 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
                                 JsonUtils.objectToJson(dataContent)));
             }
         }
+
+        // 异步消息，保存信息到数据库表
+        MessagePublisher.sendMsgToSave(chatMsg);
     }
 
     /**

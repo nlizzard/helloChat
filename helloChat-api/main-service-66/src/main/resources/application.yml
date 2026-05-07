@@ -40,7 +40,12 @@ spring:
         username: ${nacos.discovery.username}
         password: ${nacos.discovery.password}
         server-addr: ${nacos.discovery.addr}
-
+  rabbitmq:
+    host: 192.168.123.2
+    port: 5672
+    username: nlizzard
+    password: nlizzard
+    virtual-host: helloChat
 
 # 日志级别
 logging:

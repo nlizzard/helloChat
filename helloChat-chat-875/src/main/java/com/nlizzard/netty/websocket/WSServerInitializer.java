@@ -9,8 +9,6 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * 初始化器，channel注册后，会执行里面的相应的初始化方法
  */
