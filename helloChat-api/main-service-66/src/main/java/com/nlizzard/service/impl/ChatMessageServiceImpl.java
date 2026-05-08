@@ -75,4 +75,16 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
 
         return setterPagedGridPlus(pageInfo);
     }
+
+    // 修改语音消息为已读
+    @Transactional
+    @Override
+    public void updateMsgSignRead(String msgId) {
+
+        ChatMessage message = new ChatMessage();
+        message.setId(msgId);
+        message.setIsRead(true);
+
+        chatMessageMapper.updateById(message);
+    }
 }

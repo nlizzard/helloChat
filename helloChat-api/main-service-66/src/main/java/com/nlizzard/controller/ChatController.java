@@ -60,4 +60,11 @@ public class ChatController extends BaseInfoProperties {
                 pageSize);
         return GraceJSONResult.ok(gridResult);
     }
+
+    // 修改语音消息为已读
+    @PostMapping("signRead/{msgId}")
+    public GraceJSONResult signRead(@PathVariable @NotBlank(message = "语音消息id不能为空") String msgId) {
+        chatMessageService.updateMsgSignRead(msgId);
+        return GraceJSONResult.ok();
+    }
 }

@@ -2,6 +2,7 @@ package com.nlizzard.service;
 
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.utils.PagedGridResult;
+import jakarta.validation.constraints.NotBlank;
 
 public interface ChatMessageService {
 
@@ -24,4 +25,9 @@ public interface ChatMessageService {
                                             Integer page,
                                             Integer pageSize);
 
+    /**
+     * 修改语音消息为已读
+     * @param msgId 消息id
+     */
+    void updateMsgSignRead(String msgId);
 }
