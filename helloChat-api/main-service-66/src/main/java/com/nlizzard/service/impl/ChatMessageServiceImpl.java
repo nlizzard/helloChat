@@ -28,5 +28,12 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
         message.setId(chatMsg.getMsgId());
 
         chatMessageMapper.insert(message);
+
+        // 记录未读消息数量，让前端消息界面可以显示未读消息的数量
+        String receiverId = chatMsg.getReceiverId();
+        String senderId = chatMsg.getSenderId();
+        // 通过redis累加信息接受者的对应记录
+        redis.incrementHash(CHAT_MSG_LIST + ":" + receiverId, senderId, 1);
+
     }
 }

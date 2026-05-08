@@ -80,7 +80,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 生成消息的唯一id
             String id = IdWorker.getIdStr();
             chatMsg.setMsgId(id);
-            // 异步消息，保存信息到数据库表
+            // 发布消息到消息队列，保存信息到数据库表
             MessagePublisher.sendMsgToSave(chatMsg);
 
             // 发送消息
@@ -171,7 +171,6 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
-        cause.printStackTrace();
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
         System.out.println("发生异常捕获，channel对应的长id为：" + currentChannelId);
