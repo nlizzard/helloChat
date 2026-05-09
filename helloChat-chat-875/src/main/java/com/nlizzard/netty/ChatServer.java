@@ -1,5 +1,6 @@
 package com.nlizzard.netty;
 
+import com.nlizzard.netty.utils.RedisClientUtils;
 import com.nlizzard.netty.websocket.WSServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -7,11 +8,21 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import redis.clients.jedis.RedisClient;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Netty 服务的启动类(服务器)
  */
 public class ChatServer {
+
+    // 默认端口号
+    public static final Integer nettyDefaultPort = 875;
+    // 在线人数初始值
+    public static final String initOnlineCounts = "0";
+
     public static void main(String[] args) throws Exception {
 
         // 定义主从线程组
@@ -27,9 +38,10 @@ public class ChatServer {
                     .channel(NioServerSocketChannel.class)      // 设置Nio的双向通道
                     .childHandler(new WSServerInitializer());   // 设置处理器，用于处理workerGroup
 
-            // 启动server，并且绑定端口号875，同时启动方式为"同步"
-            System.out.println("Netty Server 启动了，正在监听端口875...");
-            ChannelFuture channelFuture = server.bind(875).sync();
+            // 启动server，并且绑定端口号，同时启动方式为"同步"
+            Integer port = selectPort(nettyDefaultPort);
+            System.out.println("Netty Server 启动了，正在监听端口" + port);
+            ChannelFuture channelFuture = server.bind(port).sync();
 
             // 监听关闭的channel
             channelFuture.channel().closeFuture().sync();
@@ -39,5 +51,34 @@ public class ChatServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    /**
+     * 选择一个netty可用的端口号
+     * @param port 端口号
+     * @return 可用的端口号
+     */
+    public static Integer selectPort(Integer port) throws Exception {
+        String portKey = "netty_port";
+        RedisClient jedis = RedisClientUtils.getJedisClient();
+        Map<String, String> portMap = jedis.hgetAll(portKey);
+        // 如果没有端口号，或者端口号列表为空，则直接使用默认端口号
+        if(portMap == null || portMap.isEmpty()){
+            jedis.hset(portKey, String.valueOf(port), initOnlineCounts);
+            return port;
+        }
+        // 端口号map不为空，则需要累加端口号
+        List<Integer> portList = portMap.keySet()
+                .stream()
+                .map(Integer::valueOf)
+                .toList();
+
+        Integer maxPort = portList.stream()
+                .max(Integer::compareTo)
+                .map(max -> max + 10) // 如果有值，则加10
+                .orElseThrow(() -> new Exception("无法找到最大端口号")); // 如果没值，直接抛异常
+
+        jedis.hset(portKey, String.valueOf(maxPort), initOnlineCounts);
+        return maxPort;
     }
 }
