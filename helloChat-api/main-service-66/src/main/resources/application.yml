@@ -47,6 +47,16 @@ spring:
     password: nlizzard
     virtual-host: helloChat
 
+# zookeeper配置
+zookeeper:
+  curator:
+    host: 192.168.123.2:2181
+    connectionTimeoutMs: 30000
+    sessionTimeoutMs: 3000
+    sleepMsBetweenRetry: 2000
+    maxRetries: 3
+    namespace: helloChat-IM
+
 # 日志级别
 logging:
   level:

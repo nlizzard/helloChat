@@ -24,4 +24,7 @@ public class DataContent {
     // 扩展字段
     private String extend;
 
+    // Netty服务器节点信息
+    private NettyServerNode serverNode;
+
 }
