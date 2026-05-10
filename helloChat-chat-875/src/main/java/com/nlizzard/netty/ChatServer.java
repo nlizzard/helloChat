@@ -1,6 +1,7 @@
 package com.nlizzard.netty;
 
 import com.nlizzard.netty.utils.RedisClientUtils;
+import com.nlizzard.netty.utils.ZookeeperRegister;
 import com.nlizzard.netty.websocket.WSServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -40,6 +41,11 @@ public class ChatServer {
 
             // 启动server，并且绑定端口号，同时启动方式为"同步"
             Integer port = selectPort(nettyDefaultPort);
+
+            // 注册netty服务到zookeeper中
+            String ip = ZookeeperRegister.getLocalIp();
+            ZookeeperRegister.registerNettyServer("netty_server_list", ip,port);
+
             System.out.println("Netty Server 启动了，正在监听端口" + port);
             ChannelFuture channelFuture = server.bind(port).sync();
 
