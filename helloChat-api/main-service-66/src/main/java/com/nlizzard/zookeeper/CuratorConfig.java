@@ -4,22 +4,32 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.pojo.netty.NettyServerNode;
 import com.nlizzard.utils.JsonUtils;
+import jakarta.annotation.Resource;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 @Slf4j
 @Component
 @ConfigurationProperties(prefix = "zookeeper.curator")
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class CuratorConfig extends BaseInfoProperties {
+
+    @Resource
+    private RabbitAdmin rabbitAdmin;
 
     private String host;                    // 单机/集群的ip:port地址
     private Integer connectionTimeoutMs;    // 连接超时时间
@@ -81,6 +91,16 @@ public class CuratorConfig extends BaseInfoProperties {
                     String oldPort = oldNode.getPort() + "";
                     String portKey = "netty_port";
                     redis.hdel(portKey, oldPort);
+
+                    // 移除残留的消息队列
+                    String ip = "";
+                    try {
+                        ip = InetAddress.getLocalHost().getHostAddress();
+                    } catch (UnknownHostException e) {
+                        throw new RuntimeException(e);
+                    }
+                    String queueName = "helloChat_queue_" + ip + "_"+ oldPort;
+                    rabbitAdmin.deleteQueue(queueName);
 
                     break;
                 default:
