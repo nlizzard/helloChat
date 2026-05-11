@@ -23,7 +23,6 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import redis.clients.jedis.RedisClient;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 // SimpleChannelInboundHandler: 对于请求来说，相当于入站(入境)
@@ -49,6 +48,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         // 获取channel
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
+        dataContent.setCurrentChannelId(currentChannelId);
 
         // 2. 判断消息类型，根据不同的类型来处理不同的业务
         if(Objects.equals(msgType,MsgTypeEnum.KEEPALIVE.type)){
@@ -96,58 +96,19 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 发布消息到消息队列，保存信息到数据库表
             MessagePublisher.sendMsgToSave(chatMsg);
 
-            // 发送消息
-            List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
-            if (receiverChannels == null || receiverChannels.isEmpty()) {
-                // receiverChannels为空，表示用户离线/断线状态，消息不需要发送
-                chatMsg.setIsReceiverOnLine(false);
-            } else {
-                chatMsg.setIsReceiverOnLine(true);
-                // 当receiverChannels不为空的时候，接收方同账户多端设备接受消息
-                for (Channel c : receiverChannels) {
-                    Channel findChannel = clients.find(c.id());
-
-                    if (findChannel == null) continue;
-
-                    if (Objects.equals(msgType, MsgTypeEnum.VOICE.type)) {
-                        chatMsg.setIsRead(false);
-                    }
-                    dataContent.setChatMsg(chatMsg);
-                    String chatTimeFormat = LocalDateUtils
-                            .format(chatMsg.getChatTime(),
-                                    LocalDateUtils.DATETIME_PATTERN_2);
-                    dataContent.setChatTime(chatTimeFormat);
-                    // 发送消息给在线的用户
-                    findChannel.writeAndFlush(
-                            new TextWebSocketFrame(
-                                    JsonUtils.objectToJson(dataContent)));
-
-                }
+            // 语音消息增加未读标记
+            if (Objects.equals(msgType, MsgTypeEnum.VOICE.type)) {
+                chatMsg.setIsRead(false);
             }
+            dataContent.setChatMsg(chatMsg);
+            // 格式化消息发送时间
+            String chatTimeFormat = LocalDateUtils
+                    .format(chatMsg.getChatTime(),
+                            LocalDateUtils.DATETIME_PATTERN_2);
+            dataContent.setChatTime(chatTimeFormat);
+            // 发送消息到广播队列
+            MessagePublisher.sendMsgToOtherNettyServer(JsonUtils.objectToJson(dataContent));
         }
-        // 同步消息到发送方其他设备端
-        List<Channel> myOtherChannels = UserChannelSession
-                .getMyOtherChannels(senderId, currentChannelId);
-        // 没有其他设备端在线，不需要同步消息
-        if(myOtherChannels == null || myOtherChannels.isEmpty()) return;
-
-        // 执行消息同步
-        for (Channel c : myOtherChannels) {
-            Channel findChannel = clients.find(c.id());
-            if (findChannel != null) {
-                dataContent.setChatMsg(chatMsg);
-                String chatTimeFormat = LocalDateUtils
-                        .format(chatMsg.getChatTime(),
-                                LocalDateUtils.DATETIME_PATTERN_2);
-                dataContent.setChatTime(chatTimeFormat);
-                // 同步消息给在线的其他设备端
-                findChannel.writeAndFlush(
-                        new TextWebSocketFrame(
-                                JsonUtils.objectToJson(dataContent)));
-            }
-        }
-
-
     }
 
     /**

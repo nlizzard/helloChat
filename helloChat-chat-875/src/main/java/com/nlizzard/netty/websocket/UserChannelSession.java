@@ -1,6 +1,10 @@
 package com.nlizzard.netty.websocket;
 
+import com.nlizzard.pojo.netty.DataContent;
+import com.nlizzard.utils.JsonUtils;
 import io.netty.channel.Channel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +20,7 @@ public class UserChannelSession {
     // key: userId, value: 多个用户的channel
     private static final Map<String, List<Channel>> multiSession = new HashMap<>();
 
-    // 用于记录用户id和客户端channel长id的关联关系
+    // 用于记录用户id和客户端channel长id的关联关系  channelId : userId
     private static final Map<String, String> userChannelIdRelation = new HashMap<>();
 
     /**
@@ -110,9 +114,36 @@ public class UserChannelSession {
 
             System.out.println("----------");
         }
-
-
         System.out.println("++++++++++++++++++");
+    }
 
+    /**
+     * 发送消息到消息接收方的channel列表
+     */
+    public static void sendToTarget(List<Channel> receiverChannels, DataContent dataContent) {
+        sendMessageToChannelList(receiverChannels,dataContent);
+    }
+    /**
+     * 发送消息到消息发送方的其他设备的channel列表
+     */
+    public static void sendToMyOthers(List<Channel> myOtherChannels, DataContent dataContent) {
+        sendMessageToChannelList(myOtherChannels, dataContent);
+    }
+
+    private static void sendMessageToChannelList(List<Channel> channelList, DataContent dataContent){
+        ChannelGroup clients = ChatHandler.clients;
+
+        if (channelList == null || channelList.isEmpty()) {
+            return;
+        }
+
+        for (Channel c : channelList) {
+            Channel findChannel = clients.find(c.id());
+            if (findChannel != null) {
+                findChannel.writeAndFlush(
+                        new TextWebSocketFrame(
+                                JsonUtils.objectToJson(dataContent)));
+            }
+        }
     }
 }

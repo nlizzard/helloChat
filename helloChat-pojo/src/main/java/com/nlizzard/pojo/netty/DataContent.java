@@ -22,9 +22,8 @@ public class DataContent {
     private String chatTime;
 
     // 扩展字段
-    private String extend;
+    private String currentChannelId;
 
     // Netty服务器节点信息
     private NettyServerNode serverNode;
-
 }

@@ -1,5 +1,6 @@
 package com.nlizzard.netty;
 
+import com.nlizzard.netty.mq.RabbitMQConnectUtils;
 import com.nlizzard.netty.utils.RedisClientUtils;
 import com.nlizzard.netty.utils.ZookeeperUtils;
 import com.nlizzard.netty.websocket.WSServerInitializer;
@@ -45,6 +46,11 @@ public class ChatServer {
             // 注册netty服务到zookeeper中
             String ip = ZookeeperUtils.getLocalIp();
             ZookeeperUtils.registerNettyServer("netty_server_list", ip,port);
+
+            // 启动消费者进行监听，队列可以根据动态生成的端口号进行拼接
+            String queueName = "netty_queue_" + ip + "_" + port;
+            RabbitMQConnectUtils mqConnectUtils = new RabbitMQConnectUtils();
+            mqConnectUtils.listen("fanout_exchange", queueName);
 
             System.out.println("Netty Server 启动了，正在监听端口" + port);
             ChannelFuture channelFuture = server.bind(port).sync();
