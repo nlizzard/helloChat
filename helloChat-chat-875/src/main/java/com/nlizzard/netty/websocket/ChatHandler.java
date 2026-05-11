@@ -7,7 +7,7 @@ import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.netty.mq.MessagePublisher;
 import com.nlizzard.netty.utils.OkHttpUtil;
 import com.nlizzard.netty.utils.RedisClientUtils;
-import com.nlizzard.netty.utils.ZookeeperRegister;
+import com.nlizzard.netty.utils.ZookeeperUtils;
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.pojo.netty.DataContent;
 import com.nlizzard.pojo.netty.NettyServerNode;
@@ -20,7 +20,6 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.RedisClient;
 
 import java.time.LocalDateTime;
@@ -63,7 +62,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
 
             NettyServerNode serverNode = dataContent.getServerNode();
             // 初次连接后，该节点下的在线人数累加
-            ZookeeperRegister.incrementOnlineCounts(serverNode);
+            ZookeeperUtils.incrementOnlineCounts(serverNode);
 
             // 获得ip+端口，在redis中设置关系，以便在前端设备断线后减少在线人数
             RedisClient jedis = RedisClientUtils.getJedisClient();
@@ -214,6 +213,6 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         String serverNode = jedis.get(userId);
         NettyServerNode nettyServerNode = JsonUtils.jsonToPojo(serverNode, NettyServerNode.class);
         // 连接关闭后，该节点下的在线人数递减
-        ZookeeperRegister.decrementOnlineCounts(nettyServerNode);
+        ZookeeperUtils.decrementOnlineCounts(nettyServerNode);
     }
 }

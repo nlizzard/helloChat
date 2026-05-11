@@ -1,11 +1,15 @@
 package com.nlizzard.zookeeper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nlizzard.base.BaseInfoProperties;
+import com.nlizzard.pojo.netty.NettyServerNode;
+import com.nlizzard.utils.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +43,50 @@ public class CuratorConfig extends BaseInfoProperties {
                 .namespace(namespace)
                 .build();
         client.start();     // 启动curator客户端
+
+        // 添加节点状态监听器
+        addListener(client,path);
+
         return client;
+    }
+
+
+    /** *
+     * 添加节点状态监听器
+     * @param client curator客户端
+     * @param path 监听的节点路径
+     */
+    private void addListener(CuratorFramework client, String path) {
+        CuratorCache curatorCache = CuratorCache.build(client, path);
+        curatorCache.listenable().addListener((type, oldData, data) -> {
+            switch (type.name()) {
+                case "NODE_CREATED":
+                    log.info("(子)节点创建");
+                    break;
+                case "NODE_CHANGED":
+                    log.info("(子)节点数据变更");
+                    break;
+                case "NODE_DELETED":
+                    log.info("(子)节点删除");
+
+                    NettyServerNode oldNode = null;
+                    try {
+                        oldNode = JsonUtils.jsonToPojo(new String(oldData.getData()),
+                                NettyServerNode.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // 从redis中删除对应的netty服务器节点信息
+                    String oldPort = oldNode.getPort() + "";
+                    String portKey = "netty_port";
+                    redis.hdel(portKey, oldPort);
+
+                    break;
+                default:
+                    break;
+            }
+        });
+            curatorCache.start();
     }
 }

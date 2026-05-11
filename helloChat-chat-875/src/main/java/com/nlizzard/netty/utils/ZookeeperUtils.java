@@ -10,7 +10,7 @@ import org.apache.zookeeper.data.Stat;
 import java.net.InetAddress;
 import java.util.List;
 
-public class ZookeeperRegister {
+public class ZookeeperUtils {
 
     /** *
      * 注册Netty服务器节点到Zookeeper中
@@ -21,7 +21,7 @@ public class ZookeeperRegister {
     public static void registerNettyServer(String nodeName,
                                            String ip,
                                            Integer port) throws Exception {
-        CuratorFramework zkClient = CuratorConfig.getClient();
+        CuratorFramework zkClient = CuratorUtils.getClient();
         String path = "/" + nodeName;
         Stat stat = zkClient.checkExists().forPath(path);
         if (stat == null) {
@@ -74,7 +74,7 @@ public class ZookeeperRegister {
     public static void dealOnlineCounts(NettyServerNode serverNode,
                                         Integer counts) throws Exception {
 
-        CuratorFramework zkClient = CuratorConfig.getClient();
+        CuratorFramework zkClient = CuratorUtils.getClient();
 
         // 获取分布式读写锁，保证在更新在线人数时的线程安全
         InterProcessReadWriteLock readWriteLock = new InterProcessReadWriteLock(zkClient,
@@ -99,7 +99,6 @@ public class ZookeeperRegister {
                     zkClient.setData().forPath(pendingNodePath, nodeJson.getBytes());
                 }
             }
-
         } finally {
             readWriteLock.writeLock().release();
         }
