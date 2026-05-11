@@ -3,10 +3,12 @@ package com.nlizzard.netty.utils;
 import com.nlizzard.pojo.netty.NettyServerNode;
 import com.nlizzard.utils.JsonUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 
 import java.net.InetAddress;
+import java.util.List;
 
 public class ZookeeperRegister {
 
@@ -41,9 +43,66 @@ public class ZookeeperRegister {
                 .forPath(path + "/IM-", nodeJson.getBytes());
     }
 
-    // 获取本机ip地址(内部ip，公网上线时，可以固定写死为公网ip地址)
+    // 获取本机ip地址(内部ip，TODO: 公网上线时，可以固定写死为公网ip地址)
     public static String getLocalIp() throws Exception {
         InetAddress addr = InetAddress.getLocalHost();
         return addr.getHostAddress();
     }
+
+
+    /**
+     * 增加在线人数
+     * @param serverNode netty服务器节点信息
+     */
+    public static void incrementOnlineCounts(NettyServerNode serverNode) throws Exception {
+        dealOnlineCounts(serverNode, 1);
+    }
+
+    /**
+     * 减少在线人数
+     * @param serverNode netty服务器节点信息
+     */
+    public static void decrementOnlineCounts(NettyServerNode serverNode) throws Exception {
+        dealOnlineCounts(serverNode, -1);
+    }
+
+    /**
+     * 处理在线人数的增减
+     * @param serverNode netty服务器节点信息
+     * @param counts 增减的在线人数数量，增加为正数，减少为负数
+     */
+    public static void dealOnlineCounts(NettyServerNode serverNode,
+                                        Integer counts) throws Exception {
+
+        CuratorFramework zkClient = CuratorConfig.getClient();
+
+        // 获取分布式读写锁，保证在更新在线人数时的线程安全
+        InterProcessReadWriteLock readWriteLock = new InterProcessReadWriteLock(zkClient,
+                "/rw-locks");
+        readWriteLock.writeLock().acquire();
+
+        try {
+
+            String path = "/server-list";
+            List<String> list = zkClient.getChildren().forPath(path);
+            for (String node:list) {
+                String pendingNodePath = path + "/" + node;
+                String nodeValue = new String(zkClient.getData().forPath(pendingNodePath));
+                NettyServerNode pendingNode = JsonUtils.jsonToPojo(nodeValue,
+                        NettyServerNode.class);
+
+                // 如果ip和端口匹配，则当前路径的节点则需要累加或者累减
+                if (pendingNode.getIp().equals(serverNode.getIp()) &&
+                        (pendingNode.getPort().intValue() == serverNode.getPort().intValue())) {
+                    pendingNode.setOnlineCounts(pendingNode.getOnlineCounts() + counts);
+                    String nodeJson = JsonUtils.objectToJson(pendingNode);
+                    zkClient.setData().forPath(pendingNodePath, nodeJson.getBytes());
+                }
+            }
+
+        } finally {
+            readWriteLock.writeLock().release();
+        }
+    }
+
 }

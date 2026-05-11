@@ -6,8 +6,11 @@ import com.nlizzard.enums.MsgTypeEnum;
 import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.netty.mq.MessagePublisher;
 import com.nlizzard.netty.utils.OkHttpUtil;
+import com.nlizzard.netty.utils.RedisClientUtils;
+import com.nlizzard.netty.utils.ZookeeperRegister;
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.pojo.netty.DataContent;
+import com.nlizzard.pojo.netty.NettyServerNode;
 import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.LocalDateUtils;
 import io.netty.channel.Channel;
@@ -17,6 +20,8 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.RedisClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +60,15 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 当websocket初次open的时候，初始化channel，把channel和用户userid关联起来
             UserChannelSession.putMultiChannels(senderId, currentChannel);
             UserChannelSession.putUserChannelIdRelation(currentChannelId, senderId);
+
+            NettyServerNode serverNode = dataContent.getServerNode();
+            // 初次连接后，该节点下的在线人数累加
+            ZookeeperRegister.incrementOnlineCounts(serverNode);
+
+            // 获得ip+端口，在redis中设置关系，以便在前端设备断线后减少在线人数
+            RedisClient jedis = RedisClientUtils.getJedisClient();
+            // 用户id为key，ip+端口为value，存储到redis中
+            jedis.set(senderId, JsonUtils.objectToJson(serverNode));
         }
         // 2.1 当消息类型为文本消息、图片消息、视频消息、语音消息的时候，进行消息的转发
         if (Objects.equals(msgType, MsgTypeEnum.WORDS.type)
@@ -154,23 +168,25 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
      * 关闭连接，移除channel
      */
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx){
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
         System.out.println("客户端关闭连接，channel对应的长id为：" + currentChannelId);
 
-        // 移除多余的会话
-        String userId = UserChannelSession.getUserIdByChannelId(currentChannelId);
-        UserChannelSession.removeUselessChannels(userId, currentChannelId);
-
+        // 发生异常之后关闭连接(关闭channel)
+        ctx.channel().close();
+        // 随后从ChannelGroup中移除对应的channel
         clients.remove(currentChannel);
+
+        // 连接关闭后，移除多余的会话，并且更新zookeeper中服务器节点在线人数
+        updateChannelSessionAndOnlineCounts(currentChannelId);
     }
 
     /**
      * 发生异常并且捕获，移除channel
      */
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
         System.out.println("发生异常捕获，channel对应的长id为：" + currentChannelId);
@@ -180,8 +196,24 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         // 随后从ChannelGroup中移除对应的channel
         clients.remove(currentChannel);
 
+        // 连接关闭后，移除多余的会话，并且更新zookeeper中服务器节点在线人数
+        updateChannelSessionAndOnlineCounts(currentChannelId);
+    }
+
+    /**
+     * 更新channelSession和更新zookeeper中服务器节点在线人数
+     * @param currentChannelId 当前channel的id
+     */
+    private void updateChannelSessionAndOnlineCounts(String currentChannelId)throws Exception{
         // 移除多余的会话
         String userId = UserChannelSession.getUserIdByChannelId(currentChannelId);
         UserChannelSession.removeUselessChannels(userId, currentChannelId);
+
+        // 连接关闭后，获得ip+端口，在redis中删除对应的关系，以便在前端设备断线后减少在线人数
+        RedisClient jedis = RedisClientUtils.getJedisClient();
+        String serverNode = jedis.get(userId);
+        NettyServerNode nettyServerNode = JsonUtils.jsonToPojo(serverNode, NettyServerNode.class);
+        // 连接关闭后，该节点下的在线人数递减
+        ZookeeperRegister.decrementOnlineCounts(nettyServerNode);
     }
 }
