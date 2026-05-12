@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.enums.Sex;
+import com.nlizzard.exceptions.GraceException;
 import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.mapper.UsersMapper;
@@ -20,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -41,13 +43,20 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
     @Override
     public void sendSMSCode(String userIp, String mobile) {
         // 限制该用户的ip在60秒内只能获得一次验证码
-        redis.setnx60s(MOBILE_SMSCODE + ":" + userIp, mobile);
+        Boolean flag = redis.setnx(MOBILE_SMSCODE + ":" + userIp, mobile);
 
-        String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
-        smsTask.sendSMSInTask(mobile, code);
+        if(!flag){
+            // 60秒内已经获得过验证码了
+            GraceException.display(ResponseStatusEnum.SMS_NEED_WAIT_ERROR);
+        }
+
+        // 生成 100000 到 999999 之间的随机数
+        SecureRandom random = new SecureRandom();
+        int code = 100000 + random.nextInt(900000);
+        smsTask.sendSMSInTask(mobile, String.valueOf(code));
 
         // 把验证码存入到redis中，用于后续的注册/登录的校验
-        redis.set(MOBILE_SMSCODE + ":" + mobile, code, 10 * 60);
+        redis.set(MOBILE_SMSCODE + ":" + mobile, String.valueOf(code), 10 * 60);
     }
 
     // 用户注册

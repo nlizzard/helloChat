@@ -89,7 +89,7 @@ public class PassportController extends BaseInfoProperties {
      * 登出
      * @param userId 用户ID
      */
-    @GetMapping("logout")
+    @PostMapping("logout")
     public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId
                                     ,HttpServletRequest request)  {
         // 清理用户的分布式会话

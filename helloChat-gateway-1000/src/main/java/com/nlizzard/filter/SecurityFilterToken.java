@@ -16,6 +16,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -65,8 +66,6 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
         HttpHeaders headers = exchange.getRequest().getHeaders();
         String userId = headers.getFirst(HEADER_USER_ID);
         String userToken = headers.getFirst(HEADER_USER_TOKEN);
-        log.info("userId = {}", userId);
-        log.info("userToken = {}", userToken);
 
         // 6. 判断header中是否有token，对用户请求进行判断拦截
         if (StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(userToken)) {
@@ -79,7 +78,7 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
 
             // 允许多设备登录
             String userIdRedis = redis.get(REDIS_USER_TOKEN + ":" + userToken);
-            if (userIdRedis.equals(userId)) {
+            if (Objects.equals(userId, userIdRedis)) {
                 // 匹配则放行
                 return chain.filter(exchange);
             }
