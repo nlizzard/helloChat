@@ -38,6 +38,7 @@
 
     <!--打包插件-->
     <build>
+        <finalName>${project.artifactId}-${version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
