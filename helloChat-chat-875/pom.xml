@@ -58,4 +58,47 @@
 
     </dependencies>
 
+    <!-- 打包-->
+    <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ChatServer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 自动移除项目中没有实际使用的依赖类，缩小体积 -->
+                            <minimizeJar>true</minimizeJar>
+                            <transformers>
+                                <!-- 合并所有依赖中的 META-INF/services 服务发现配置文件 -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <!-- 指定 Netty 服务器的启动主类 -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.nlizzard.netty.ChatServer</mainClass>
+                                </transformer>
+                            </transformers>
+                            <!-- 过滤签名文件，防止运行抛出 SecurityException 异常 -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

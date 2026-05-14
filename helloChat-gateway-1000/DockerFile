@@ -1,0 +1,6 @@
+FROM openjdk:21
+EXPOSE 1000
+
+VOLUME /data
+COPY target/helloChat-gateway-1000-1.0.jar helloChat-gateway.jar
+ENTRYPOINT ["java", "-jar", "-Xms128m","-Xmx256m","helloChat-gateway.jar"]

@@ -1,0 +1,6 @@
+FROM openjdk:21
+EXPOSE 55
+
+VOLUME /data
+COPY target/file-service-55-1.0.jar file-service.jar
+ENTRYPOINT ["java", "-jar", "-Xms128m","-Xmx256m","file-service.jar"]

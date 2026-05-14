@@ -1,0 +1,7 @@
+FROM openjdk:21
+ENV PORT=875
+EXPOSE $PORT
+
+VOLUME /data
+COPY target/helloChat-chat-875-1.0.jar chat-server.jar
+ENTRYPOINT ["sh","-c","java -jar -Xms128m -Xmx256m chat-server.jar ${PORT}"]

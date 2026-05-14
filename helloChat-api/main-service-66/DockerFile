@@ -1,0 +1,6 @@
+FROM openjdk:21
+EXPOSE 66
+
+VOLUME /data
+COPY target/main-service-66-1.0.jar main-service.jar
+ENTRYPOINT ["java", "-jar", "-Xms128m","-Xmx256m","main-service.jar"]

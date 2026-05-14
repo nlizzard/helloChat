@@ -27,6 +27,11 @@ public class ChatServer {
 
     public static void main(String[] args) throws Exception {
 
+        Integer portArg = nettyDefaultPort;
+        if(args !=null && args.length > 0){
+            portArg = Integer.valueOf(args[0]);
+        }
+
         // 定义主从线程组
         // 定义主线程池，用于接受客户端的连接，但是不做任何处理
         EventLoopGroup bossGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
@@ -41,7 +46,7 @@ public class ChatServer {
                     .childHandler(new WSServerInitializer());   // 设置处理器，用于处理workerGroup
 
             // 启动server，并且绑定端口号，同时启动方式为"同步"
-            Integer port = selectPort(nettyDefaultPort);
+            Integer port = selectPort(portArg);
 
             // 注册netty服务到zookeeper中
             String ip = ZookeeperUtils.getLocalIp();

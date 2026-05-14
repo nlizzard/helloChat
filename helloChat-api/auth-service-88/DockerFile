@@ -1,0 +1,6 @@
+FROM openjdk:21
+EXPOSE 88
+
+VOLUME /data
+COPY target/auth-service-88-1.0.jar auth-service.jar
+ENTRYPOINT ["java", "-jar", "-Xms128m","-Xmx256m","auth-service.jar"]
