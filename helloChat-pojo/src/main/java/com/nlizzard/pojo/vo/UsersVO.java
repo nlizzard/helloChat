@@ -33,6 +33,8 @@ public class UsersVO {
     private String face;
     private String email;
 
+    private String tokenKey;       // 用户会话令牌token的key，传递给前端让前端保存处理
+
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonFormat(locale = LOCALE_ZH,pattern = DATE_PATTERN, timezone = TIMEZONE_GMT8)

@@ -18,9 +18,7 @@ import static com.nlizzard.utils.LocalDateUtils.*;
 @NoArgsConstructor
 public class ModifyUserBO {
 
-    @NotBlank(message = "用户id不能为空")
     private String userId;
-
     private String face;
     private Integer sex;
     private String nickname;

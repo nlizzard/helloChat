@@ -21,4 +21,7 @@ public class RegistryLoginBO {
     private String smsCode;
 
     private String nickname;
+
+    @NotBlank(message = "设备类型码不能为空")
+    private Integer deviceCode;
 }

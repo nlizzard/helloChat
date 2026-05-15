@@ -55,9 +55,10 @@ public class PassportController extends BaseInfoProperties {
         String mobile = registryLoginBO.getMobile();
         String code = registryLoginBO.getSmsCode();
         String nickname = registryLoginBO.getNickname();
+        Integer deviceCode = registryLoginBO.getDeviceCode();
 
         //注册用户
-        return usersService.userRegistry(mobile, code, nickname);
+        return usersService.userRegistry(mobile, code, nickname,deviceCode);
 
     }
 
@@ -66,9 +67,10 @@ public class PassportController extends BaseInfoProperties {
 
         String mobile = registryLoginBO.getMobile();
         String code = registryLoginBO.getSmsCode();
+        Integer deviceCode = registryLoginBO.getDeviceCode();
 
         // 登录
-        return usersService.userLogin(mobile, code);
+        return usersService.userLogin(mobile, code,deviceCode);
     }
 
     /**
@@ -81,8 +83,9 @@ public class PassportController extends BaseInfoProperties {
         String mobile = registryLoginBO.getMobile();
         String code = registryLoginBO.getSmsCode();
         String nickname = registryLoginBO.getNickname();
+        Integer deviceCode = registryLoginBO.getDeviceCode();
 
-        return usersService.userRegistryOrLogin(mobile, code,nickname);
+        return usersService.userRegistryOrLogin(mobile, code,nickname,deviceCode);
     }
 
     /**
@@ -92,10 +95,7 @@ public class PassportController extends BaseInfoProperties {
     @PostMapping("logout")
     public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId
                                     ,HttpServletRequest request)  {
-        // 清理用户的分布式会话
-        // 限制用户在一台设备进行登录->登出
-//        redis.del(REDIS_USER_TOKEN + ":" + userId);
-        // 允许用户在多端多设备进行登录->登出
+
         String uToken = request.getHeader(HEADER_USER_TOKEN);
         redis.del(REDIS_USER_TOKEN + ":" + uToken);
         return GraceJSONResult.ok();

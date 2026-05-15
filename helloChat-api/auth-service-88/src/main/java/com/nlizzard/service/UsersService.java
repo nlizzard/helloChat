@@ -17,35 +17,30 @@ public interface UsersService {
      * @param mobile 手机号
      * @param smsCode 短信验证码
      * @param nickname 昵称
+     * @param deviceCode 设备类型码
      * @return GraceJSONResult对象，表示操作结果
      */
-    GraceJSONResult userRegistry(String mobile, String smsCode, String nickname);
+    GraceJSONResult userRegistry(String mobile, String smsCode, String nickname,Integer deviceCode);
 
     /**
      * 用户登录
      * @param mobile 手机号
      * @param smsCode 短信验证码
+     * @param deviceCode 设备类型码
      * @return GraceJSONResult对象，表示操作结果
      */
-    GraceJSONResult userLogin(String mobile, String smsCode);
+    GraceJSONResult userLogin(String mobile, String smsCode,Integer deviceCode);
 
     /**
      * 一键注册登录接口，可以同时提供给用户做登录和注册使用调用
      * @param mobile 手机号
      * @param smsCode 短信验证码
      * @param nickname 昵称
+     * @param deviceCode 设备类型码
      * @return GraceJSONResult对象，表示操作结果
      */
-    GraceJSONResult userRegistryOrLogin(String mobile, String smsCode, String nickname);
+    GraceJSONResult userRegistryOrLogin(String mobile, String smsCode, String nickname,Integer deviceCode);
 
-    /**
-     * 用户注册或登录成功后，删除redis中的短信验证码使其失效，
-     * 并且设置用户分布式会话，保存用户的token令牌，存储到redis中，最后返回用户数据给前端
-     * @param mobile 手机号
-     * @param user 用户对象
-     * @return GraceJSONResult对象，表示操作结果
-     */
-    GraceJSONResult successRegistryOrLogin(String mobile,Users user);
 
     /**
      * 判断用户是否存在，如果存在则返回用户信息，否则null

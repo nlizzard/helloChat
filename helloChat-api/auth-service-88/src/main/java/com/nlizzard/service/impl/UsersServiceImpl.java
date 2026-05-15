@@ -1,6 +1,7 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.nlizzard.api.feign.FileMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.enums.Sex;
@@ -13,6 +14,7 @@ import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.service.UsersService;
 import com.nlizzard.tasks.SMSTask;
 import com.nlizzard.utils.DesensitizationUtil;
+import com.nlizzard.utils.JwtUtil;
 import com.nlizzard.utils.LocalDateUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +36,6 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
     private final SMSTask smsTask;
 
     private final FileMicroServiceFeign fileMicroServiceFeign;
-
-    // TODO: 默认头像图片，先用我个人博客图片，后续修改
-    private static final String USER_FACE1 = "https://nlizzard.github.io/img/logo.jpg";
-
 
     // 发送短信验证码
     @Override
@@ -61,7 +59,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
 
     // 用户注册
     @Override
-    public GraceJSONResult userRegistry(String mobile, String smsCode, String nickname) {
+    public GraceJSONResult userRegistry(String mobile, String smsCode, String nickname,Integer deviceCode) {
         // 1. 从redis中获得验证码进行校验判断是否匹配
         String redisCode = redis.get(MOBILE_SMSCODE + ":" + mobile);
         if (StringUtils.isBlank(redisCode) || !redisCode.equalsIgnoreCase(smsCode)) {
@@ -85,12 +83,12 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         user = proxy.createUsers(mobile, nickname);
 
         // 3. 用户注册成功
-        return successRegistryOrLogin(mobile, user);
+        return successRegistryOrLogin(mobile, user,deviceCode);
     }
 
     // 用户登录
     @Override
-    public GraceJSONResult userLogin(String mobile, String smsCode) {
+    public GraceJSONResult userLogin(String mobile, String smsCode,Integer deviceCode) {
         // 1. 从redis中获得验证码进行校验判断是否匹配
         String redisCode = redis.get(MOBILE_SMSCODE + ":" + mobile);
         if (StringUtils.isBlank(redisCode) || !redisCode.equalsIgnoreCase(smsCode)) {
@@ -104,12 +102,12 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
         }
         // 3. 用户登录成功
-        return successRegistryOrLogin(mobile, user);
+        return successRegistryOrLogin(mobile, user,deviceCode);
     }
 
     // 一键注册登录接口，可以同时提供给用户做登录和注册使用调用
     @Override
-    public GraceJSONResult userRegistryOrLogin(String mobile, String smsCode, String nickname) {
+    public GraceJSONResult userRegistryOrLogin(String mobile, String smsCode, String nickname,Integer deviceCode) {
 
         // 如果用户没有输入昵称，则默认设置为用户138****1234的形式
         if(StringUtils.isBlank(nickname)){
@@ -130,31 +128,36 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
             user = proxy.createUsers(mobile, nickname);
         }
         // 3. 用户成功登录或成功注册
-        return successRegistryOrLogin(mobile, user);
+        return successRegistryOrLogin(mobile, user,deviceCode);
     }
 
     /**
-     * 用户注册成功后，删除redis中的短信验证码使其失效，
+     * 用户注册或登录成功后，删除redis中的短信验证码使其失效，
      * 并且设置用户分布式会话，保存用户的token令牌，存储到redis中，最后返回用户数据给前端
+     * @param mobile 手机号
+     * @param user 用户对象
+     * @return GraceJSONResult对象，表示操作结果
      */
-    @Override
-    public GraceJSONResult successRegistryOrLogin(String mobile,Users user){
+    public GraceJSONResult successRegistryOrLogin(String mobile,Users user,Integer deviceCode){
         // 用户注册/登录成功后，删除redis中的短信验证码使其失效
         redis.del(MOBILE_SMSCODE + ":" + mobile);
 
+        String userId = user.getId();
+
         // 设置用户分布式会话，保存用户的token令牌，存储到redis中
-        String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
+        String uToken = JwtUtil.generateToken(userId);
 
-        // 本方式只能限制用户在一台设备进行登录
-        //redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);   // 设置分布式会话
+        // user:token:{userid}:{deviceCode} -> token    token 由id合成
 
-        // 本方式允许用户在多端多设备进行登录
-        redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());   // 设置分布式会话
+        // 用户可以多端登录，同端只允许登录一台
+        String uTokenKey = REDIS_USER_TOKEN + ":" + userId + ":" + deviceCode;
+        redis.setByDays(uTokenKey, uToken,2);   // 设置分布式会话
 
         // 返回用户数据给前端
         UsersVO usersVO = new UsersVO();
         BeanUtils.copyProperties(user, usersVO);
         usersVO.setUserToken(uToken);
+        usersVO.setTokenKey(uTokenKey);
 
         return GraceJSONResult.ok(usersVO);
     }
@@ -181,8 +184,12 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         String[] uuidStr = uuid.split("-");
         String wechatNum = "wx" + uuidStr[0] + uuidStr[1];
         user.setWechatNum(wechatNum);
+
+        String userId = IdWorker.getIdStr();
+        user.setId(userId);
+
         // 仿微信二维码生成
-        String wechatNumUrl = getQrCodeUrl(wechatNum, TEMP_STRING);
+        String wechatNumUrl = getQrCodeUrl(wechatNum, userId);
         user.setWechatNumImg(wechatNumUrl);
 
 
@@ -190,13 +197,12 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         // DesensitizationUtil 脱敏
         if (StringUtils.isBlank(nickname)) {
             user.setNickname("用户" + DesensitizationUtil.commonDisplay(mobile));
+        }else{
+            user.setNickname(nickname);
         }
-        user.setNickname(nickname);
         user.setRealName("");
 
         user.setSex(Sex.secret.type);
-        user.setFace(USER_FACE1);
-        user.setFriendCircleBg(USER_FACE1);
         user.setEmail("");
 
         user.setBirthday(LocalDateUtils

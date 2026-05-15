@@ -2,6 +2,7 @@ package com.nlizzard.filter;
 
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.grace.result.ResponseStatusEnum;
+import com.nlizzard.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,6 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
 
         // 1. 获得当前用户请求的路径url
         String url = exchange.getRequest().getURI().getPath();
-        log.info("SecurityFilterToken 当前请求 url = {}", url);
 
         // 2. 获得所有的需要排除校验的url list
         List<String> excludeList = excludeUrlProperties.getUrls();
@@ -60,28 +60,28 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
         }
 
         // 4. 代码到达此处，表示请求被拦截，需要进行校验
-        log.info("当前请求的路径[{}]被拦截...", url);
+        //log.info("当前请求的路径[{}]被拦截...", url);
 
         // 5. 从header中获得用户的id以及token
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        String userId = headers.getFirst(HEADER_USER_ID);
+        String userTokenKey = headers.getFirst(HEADER_USER_TOKEN_KEY);
         String userToken = headers.getFirst(HEADER_USER_TOKEN);
 
         // 6. 判断header中是否有token，对用户请求进行判断拦截
-        if (StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(userToken)) {
-             // 限制只能单设备登录
-             //String redisToken = redis.get(REDIS_USER_TOKEN + ":" + userId);
-             //if (redisToken.equals(userToken)) {
-                 // 匹配则放行
-             //     return chain.filter(exchange);
-             //}
+        if (StringUtils.isNotBlank(userTokenKey) && StringUtils.isNotBlank(userToken)) {
 
-            // 允许多设备登录
-            String userIdRedis = redis.get(REDIS_USER_TOKEN + ":" + userToken);
-            if (Objects.equals(userId, userIdRedis)) {
-                // 匹配则放行
-                return chain.filter(exchange);
+            String redisUserToken = redis.get(userTokenKey);
+            if(StringUtils.isBlank(redisUserToken) || !redisUserToken.equals(userToken)){
+                // 如果redis中没有token，或者token不匹配，则表示用户没有登录
+                return RenderErrorUtils.display(exchange, ResponseStatusEnum.UN_LOGIN);
             }
+
+            String userId = JwtUtil.getUserId(userToken);
+
+            // 将用户id放入header中，继续向下游服务传递
+            chain.filter(exchange.mutate()
+                            .request(r -> r.header(HEADER_USER_ID, Objects.requireNonNull(userId)))
+                    .build());
         }
 
         // 默认不放行
