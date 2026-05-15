@@ -9,6 +9,7 @@ import com.nlizzard.pojo.vo.FriendCircleVO;
 import com.nlizzard.service.CommentService;
 import com.nlizzard.service.FriendCircleService;
 import com.nlizzard.utils.PagedGridResult;
+import com.nlizzard.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class FriendCircleController extends BaseInfoProperties {
             return GraceJSONResult.errorMsg("朋友圈发布内容不能为空！");
         }
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();;
 
         friendCircleBO.setUserId(userId);
         friendCircleBO.setPublishTime(LocalDateTime.now());
@@ -59,17 +60,15 @@ public class FriendCircleController extends BaseInfoProperties {
 
     /**
      * 查询朋友圈列表
-     * @param request 请求对象
      * @param page 页码
      * @param pageSize 每页条数
      * @return 结果
      */
     @PostMapping("queryList")
-    public GraceJSONResult queryFriendCircleList(HttpServletRequest request,
-                                   @RequestParam(defaultValue = "1", name = "page") Integer page,
+    public GraceJSONResult queryFriendCircleList(@RequestParam(defaultValue = "1", name = "page") Integer page,
                                    @RequestParam(defaultValue = "10", name = "pageSize") Integer pageSize) {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
 
         PagedGridResult gridResult = friendCircleService.queryList(userId, page, pageSize);
 
@@ -95,14 +94,12 @@ public class FriendCircleController extends BaseInfoProperties {
     /**
      * 点赞朋友圈
      * @param friendCircleId 朋友圈ID
-     * @param request 请求对象
      * @return 结果
      */
     @PostMapping("like")
-    public GraceJSONResult like(String friendCircleId,
-                                HttpServletRequest request) {
+    public GraceJSONResult like(String friendCircleId) {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
         friendCircleService.toggleLike(friendCircleId, userId,"like");
 
         return GraceJSONResult.ok();
@@ -118,7 +115,7 @@ public class FriendCircleController extends BaseInfoProperties {
     public GraceJSONResult unlike(String friendCircleId,
                                   HttpServletRequest request) {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
         friendCircleService.toggleLike(friendCircleId, userId,"unlike");
 
         return GraceJSONResult.ok();
@@ -139,14 +136,12 @@ public class FriendCircleController extends BaseInfoProperties {
     /**
      * 删除朋友圈
      * @param friendCircleId 朋友圈ID
-     * @param request 请求对象
      * @return 结果
      */
     @PostMapping("delete")
-    public GraceJSONResult delete(@NotBlank(message = "朋友圈ID不能为空") String friendCircleId,
-                                  HttpServletRequest request) {
+    public GraceJSONResult delete(@NotBlank(message = "朋友圈ID不能为空") String friendCircleId) {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
         friendCircleService.delete(friendCircleId, userId);
 
         return GraceJSONResult.ok();

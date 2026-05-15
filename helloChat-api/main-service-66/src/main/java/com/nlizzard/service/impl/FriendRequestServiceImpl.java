@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.enums.FriendRequestVerifyStatus;
 import com.nlizzard.enums.YesOrNo;
+import com.nlizzard.exceptions.GraceException;
+import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.mapper.FriendRequestMapper;
 import com.nlizzard.mapper.FriendshipMapper;
 import com.nlizzard.pojo.FriendRequest;
@@ -14,6 +16,7 @@ import com.nlizzard.pojo.bo.NewFriendRequestBO;
 import com.nlizzard.pojo.vo.NewFriendsVO;
 import com.nlizzard.service.FriendRequestService;
 import com.nlizzard.utils.PagedGridResult;
+import com.nlizzard.utils.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -67,8 +70,19 @@ public class FriendRequestServiceImpl extends BaseInfoProperties implements Frie
     public void passNewFriend(String friendRequestId, String friendRemark) {
         // 1.查询好友请求记录，获取双方的用户ID
         FriendRequest friendRequest = getSingle(friendRequestId);
+
+        // 如果好友请求记录不存在，或者好友请求记录的状态不是“等待”，则抛出异常
+        if(friendRequest == null || !friendRequest.getVerifyStatus().equals(FriendRequestVerifyStatus.WAIT.type)){
+            GraceException.display(ResponseStatusEnum.FAILED);
+        }
+
         String mySelfId = friendRequest.getFriendId();  // 被申请方的用户id
         String myFriendId = friendRequest.getMyId();    // 申请方的用户id
+
+        // 鉴权，只有被申请方才能通过好友请求，所以被申请方的用户id必须和当前登录用户id一致，否则抛出异常
+        if(!mySelfId.equals(UserContext.getUserId())){
+            GraceException.display(ResponseStatusEnum.NO_AUTH);
+        }
 
         LocalDateTime nowTime = LocalDateTime.now();
         // 2.创建双方的好友关系

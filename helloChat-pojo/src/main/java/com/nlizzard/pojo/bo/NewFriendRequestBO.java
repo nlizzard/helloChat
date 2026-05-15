@@ -12,7 +12,6 @@ import lombok.ToString;
 @NoArgsConstructor
 public class NewFriendRequestBO {
 
-    @NotBlank(message = "当前用户id不能为空")
     private String myId;
     @NotBlank(message = "对方id不能为空")
     private String friendId;

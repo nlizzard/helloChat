@@ -5,6 +5,7 @@ import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.pojo.bo.CommentBO;
 import com.nlizzard.pojo.vo.CommentVO;
 import com.nlizzard.service.CommentService;
+import com.nlizzard.utils.UserContext;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CommentController extends BaseInfoProperties {
      */
     @PostMapping("create")
     public GraceJSONResult create(@RequestBody @Valid CommentBO friendCircleBO) {
+        friendCircleBO.setBelongUserId(UserContext.getUserId());
         CommentVO commentVO = commentService.createComment(friendCircleBO);
         return GraceJSONResult.ok(commentVO);
     }

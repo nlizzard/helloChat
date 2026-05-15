@@ -6,6 +6,7 @@ import com.nlizzard.pojo.netty.NettyServerNode;
 import com.nlizzard.service.ChatMessageService;
 import com.nlizzard.utils.JsonUtils;
 import com.nlizzard.utils.PagedGridResult;
+import com.nlizzard.utils.UserContext;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.apache.curator.framework.CuratorFramework;
@@ -15,7 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("chat")
@@ -31,7 +35,9 @@ public class ChatController extends BaseInfoProperties {
      * 获取我的未读消息数量
      */
     @PostMapping("getMyUnReadCounts")
-    public GraceJSONResult getMyUnReadCounts(@NotBlank(message="用户id不能为空") String myId) {
+    public GraceJSONResult getMyUnReadCounts() {
+
+        String myId = UserContext.getUserId();
         Map<Object, Object> map = redis.hgetall(CHAT_MSG_LIST + ":" + myId);
         return GraceJSONResult.ok(map);
     }
@@ -40,8 +46,9 @@ public class ChatController extends BaseInfoProperties {
      * 清空我的未读消息数量
      */
     @PostMapping("clearMyUnReadCounts")
-    public GraceJSONResult clearMyUnReadCounts(@NotBlank(message="用户id不能为空") String myId,
-                                               @NotBlank(message="消息发送方的id不能为空") String oppositeId) {
+    public GraceJSONResult clearMyUnReadCounts(@NotBlank(message="消息发送方的id不能为空") String oppositeId) {
+
+        String myId = UserContext.getUserId();
         redis.setHashValue(CHAT_MSG_LIST + ":" + myId, oppositeId, "0");
         return GraceJSONResult.ok();
     }

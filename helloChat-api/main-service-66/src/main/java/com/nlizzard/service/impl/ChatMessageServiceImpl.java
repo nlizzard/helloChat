@@ -1,15 +1,18 @@
 package com.nlizzard.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nlizzard.base.BaseInfoProperties;
+import com.nlizzard.exceptions.GraceException;
+import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.mapper.ChatMessageMapper;
+import com.nlizzard.mapper.FriendshipMapper;
 import com.nlizzard.pojo.ChatMessage;
+import com.nlizzard.pojo.Friendship;
 import com.nlizzard.pojo.netty.ChatMsg;
 import com.nlizzard.service.ChatMessageService;
 import com.nlizzard.utils.PagedGridResult;
-import kotlin.jvm.internal.Lambda;
+import com.nlizzard.utils.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMessageService {
 
     private final ChatMessageMapper chatMessageMapper;
+
+    private final FriendshipMapper friendshipMapper;
 
     // 保存聊天消息到数据库中
     @Transactional
@@ -52,6 +57,23 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
                                             String receiverId,
                                             Integer page,
                                             Integer pageSize) {
+        String myId = UserContext.getUserId();
+
+        // 只能查询与我相关的聊天消息列表
+        if (!senderId.equals(myId) && !receiverId.equals(myId)) {
+            GraceException.display(ResponseStatusEnum.NO_AUTH);
+        }
+
+        // 是否存在好友关系
+        LambdaQueryWrapper<Friendship> friendShipQueryWrapper = new LambdaQueryWrapper<Friendship>()
+                .or(qw -> qw.eq(Friendship::getMyId, senderId)
+                        .eq(Friendship::getFriendId, receiverId))
+                .or(qw -> qw.eq(Friendship::getMyId, receiverId)
+                        .eq(Friendship::getFriendId, senderId));
+        Friendship friendship = friendshipMapper.selectOne(friendShipQueryWrapper);
+        if (friendship == null) {
+            GraceException.display(ResponseStatusEnum.NO_AUTH);
+        }
 
         Page<ChatMessage> pageInfo = new Page<>(page, pageSize);
 
@@ -80,6 +102,13 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
     @Transactional
     @Override
     public void updateMsgSignRead(String msgId) {
+
+        String myId = UserContext.getUserId();
+        ChatMessage chatMessage = chatMessageMapper.selectById(msgId);
+        // 消息不存在，或者消息的接受者不是当前用户，都不能修改为已读
+        if(chatMessage == null || !chatMessage.getReceiverId().equals(myId)) {
+            GraceException.display(ResponseStatusEnum.FAILED);
+        }
 
         ChatMessage message = new ChatMessage();
         message.setId(msgId);

@@ -12,7 +12,6 @@ import lombok.ToString;
 @NoArgsConstructor
 public class CommentBO {
 
-    @NotBlank(message = "用户id不能为空")
     private String belongUserId;
     @NotBlank(message = "朋友圈id不能为空")
     private String friendCircleId;
