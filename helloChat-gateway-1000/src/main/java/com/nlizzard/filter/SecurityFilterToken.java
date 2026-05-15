@@ -77,10 +77,11 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
             }
 
             String userId = JwtUtil.getUserId(userToken);
-
+            redis.expireByDays(userTokenKey,USER_TOKEN_EXPIRE_DAY); // 刷新token过期时间
             // 将用户id放入header中，继续向下游服务传递
             chain.filter(exchange.mutate()
-                            .request(r -> r.header(HEADER_USER_ID, Objects.requireNonNull(userId)))
+                            .request(r -> r.header(HEADER_USER_ID, Objects.requireNonNull(userId))
+                                    .header(HEADER_USER_TOKEN_KEY, Objects.requireNonNull(userTokenKey)))
                     .build());
         }
 

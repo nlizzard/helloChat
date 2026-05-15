@@ -55,6 +55,15 @@ public class RedisOperator {
 	public void expire(String key, long timeout) {
 		redisTemplate.expire(key, timeout, TimeUnit.SECONDS);
 	}
+
+	/**
+	 * 实现命令：expire 设置过期时间，单位天
+	 * @param key
+	 * @param days
+	 */
+	public void expireByDays(String key, long days) {
+		redisTemplate.expire(key, days, TimeUnit.DAYS);
+	}
 	
 	/**
 	 * 实现命令：increment key，增加key一次

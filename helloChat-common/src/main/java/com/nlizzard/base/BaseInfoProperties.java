@@ -22,6 +22,7 @@ public class BaseInfoProperties {
     public static final String HEADER_USER_ID = "headerUserId";
     public static final String HEADER_USER_TOKEN_KEY = "headerUserTokenKey";
     public static final String HEADER_USER_TOKEN = "headerUserToken";
+    public static final Integer USER_TOKEN_EXPIRE_DAY = 2;
 
     public static final String SYMBOL_DOT = ".";       // 小圆点，无意义，可用可不用
 

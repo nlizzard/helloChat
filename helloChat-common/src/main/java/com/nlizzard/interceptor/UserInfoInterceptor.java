@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 用户信息拦截器类，用于从网关传过来的请求头拿到用户ID，并注入ThreadLocal
+ * 用户信息拦截器类，用于从网关传过来的请求头拿到用户ID和redis中TokenKey，并注入ThreadLocal
  */
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class UserInfoInterceptor extends BaseInfoProperties implements HandlerInterceptor {
@@ -17,12 +17,14 @@ public class UserInfoInterceptor extends BaseInfoProperties implements HandlerIn
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String userId = request.getHeader(HEADER_USER_ID);
-        UserContext.setUserId(userId);
+        String userTokenKey = request.getHeader(HEADER_USER_TOKEN_KEY);
+
+        UserContext.setUserIdAndRedisTokenKey(userId,userTokenKey);
         return true;
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex) throws Exception {
-        UserContext.removeUserId();
+        UserContext.removeUserInfo();
     }
 }

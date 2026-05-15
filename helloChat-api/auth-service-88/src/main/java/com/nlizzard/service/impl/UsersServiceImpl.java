@@ -151,7 +151,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
 
         // 用户可以多端登录，同端只允许登录一台
         String uTokenKey = REDIS_USER_TOKEN + ":" + userId + ":" + deviceCode;
-        redis.setByDays(uTokenKey, uToken,2);   // 设置分布式会话
+        redis.setByDays(uTokenKey, uToken,USER_TOKEN_EXPIRE_DAY);   // 设置分布式会话
 
         // 返回用户数据给前端
         UsersVO usersVO = new UsersVO();

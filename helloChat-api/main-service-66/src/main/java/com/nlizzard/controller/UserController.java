@@ -7,6 +7,8 @@ import com.nlizzard.pojo.Users;
 import com.nlizzard.pojo.bo.ModifyUserBO;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.service.UsersService;
+import com.nlizzard.utils.JwtUtil;
+import com.nlizzard.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,8 @@ public class UserController extends BaseInfoProperties {
      */
     @PostMapping("modify")
     public GraceJSONResult modify(@RequestBody ModifyUserBO modifyUserBO) {
+
+        modifyUserBO.setUserId(UserContext.getUserId());
         usersService.modifyUserInfo(modifyUserBO);
 
         UsersVO usersVO = getUserInfo(modifyUserBO.getUserId(),true);
@@ -50,13 +54,13 @@ public class UserController extends BaseInfoProperties {
 
         // 生成用户token令牌，存入redis中，分布式会话
         if(needToken){
-            // 设置用户分布式会话，保存用户的token令牌，存储到redis中
-            String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
-            // 本方式只能限制用户在一台设备进行登录
-            redis.set(REDIS_USER_TOKEN + ":" + userId, uToken);   // 设置分布式会话
-            // 本方式允许用户在多端多设备进行登录
-            //redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());   // 设置分布式会话
+
+            String uToken = JwtUtil.generateToken(userId);
+            String uTokenKey = UserContext.getRedisTokenKey();
+            redis.setByDays(uTokenKey, uToken,USER_TOKEN_EXPIRE_DAY);   // 设置分布式会话
+
             usersVO.setUserToken(uToken);
+            usersVO.setTokenKey(uTokenKey);
         }
         return usersVO;
     }
@@ -73,14 +77,13 @@ public class UserController extends BaseInfoProperties {
 
     /**
      * 修改用户头像接口
-     * @param userId 用户ID
      * @param faceUrl 头像地址
      * @return GraceJSONResult
      */
     @PostMapping("updateFace")
-    public GraceJSONResult updateFace(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId,
-                                      @RequestParam("faceUrl") @NotBlank(message = "头像地址不能为空") String faceUrl) {
+    public GraceJSONResult updateFace(@RequestParam("faceUrl") @NotBlank(message = "头像地址不能为空") String faceUrl) {
         ModifyUserBO modifyUserBO = new ModifyUserBO();
+        String userId = UserContext.getUserId();
         modifyUserBO.setUserId(userId);
         modifyUserBO.setFace(faceUrl);
         usersService.modifyUserInfo(modifyUserBO);
@@ -91,15 +94,12 @@ public class UserController extends BaseInfoProperties {
 
     /**
      * 修改用户朋友圈背景图接口
-     * @param userId 用户ID
      * @param friendCircleBg 朋友圈背景图地址
      * @return GraceJSONResult
      */
     @PostMapping("updateFriendCircleBg")
-    public GraceJSONResult updateFriendCircleBg(
-            @RequestParam("userId") String userId,
-            @RequestParam("friendCircleBg") String friendCircleBg) {
-
+    public GraceJSONResult updateFriendCircleBg(@RequestParam("friendCircleBg") String friendCircleBg) {
+        String userId = UserContext.getUserId();
         ModifyUserBO userBO = new ModifyUserBO();
         userBO.setUserId(userId);
         userBO.setFriendCircleBg(friendCircleBg);
@@ -115,16 +115,13 @@ public class UserController extends BaseInfoProperties {
 
     /**
      * 修改用户聊天背景图接口
-     * @param userId 用户ID
      * @param chatBg 聊天背景图地址
      * @return GraceJSONResult
      */
     @PostMapping("updateChatBg")
-    public GraceJSONResult updateChatBg(
-                                        @RequestParam("userId") String userId,
-                                        @RequestParam("chatBg") String chatBg) {
+    public GraceJSONResult updateChatBg(@RequestParam("chatBg") String chatBg) {
         ModifyUserBO userBO = new ModifyUserBO();
-        userBO.setUserId(userId);
+        userBO.setUserId(UserContext.getUserId());
         userBO.setChatBg(chatBg);
 
         // 修改用户信息
@@ -140,12 +137,10 @@ public class UserController extends BaseInfoProperties {
     /**
      * 搜索好友接口，根据微信号或手机号查询用户信息
      * @param queryString 微信号或手机号
-     * @param request HttpServletRequest对象，用于获取当前用户ID
      * @return GraceJSONResult
      */
     @PostMapping("queryFriend")
-    public GraceJSONResult queryFriend(@NotBlank(message = "搜索字段不能为空") String queryString,
-                                       HttpServletRequest request) {
+    public GraceJSONResult queryFriend(@NotBlank(message = "搜索字段不能为空") String queryString) {
 
         Users friend = usersService.getByWechatNumOrMobile(queryString);
         if (friend == null) {
@@ -153,7 +148,7 @@ public class UserController extends BaseInfoProperties {
         }
 
         // 判断，不能添加自己为好友
-        String myId = request.getHeader(HEADER_USER_ID);
+        String myId = UserContext.getUserId();
         if (myId.equals(friend.getId())) {
             return GraceJSONResult.errorCustom(ResponseStatusEnum.CAN_NOT_ADD_SELF_FRIEND_ERROR);
         }

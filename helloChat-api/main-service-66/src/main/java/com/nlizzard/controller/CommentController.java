@@ -55,7 +55,6 @@ public class CommentController extends BaseInfoProperties {
                                   @NotBlank(message = "评论ID不能为空")String commentId,
                                   @NotBlank(message = "朋友圈ID不能为空")String friendCircleId) {
 
-
         commentService.deleteComment(commentUserId, commentId, friendCircleId);
         return GraceJSONResult.ok();
     }
