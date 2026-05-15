@@ -43,7 +43,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
     @Override
     public void sendSMSCode(String userIp, String mobile) {
         // 限制该用户的ip在60秒内只能获得一次验证码
-        Boolean flag = redis.setnx(MOBILE_SMSCODE + ":" + userIp, mobile);
+        Boolean flag = redis.setnx(MOBILE_SMSCODE + ":" + userIp, mobile,60);
 
         if(!flag){
             // 60秒内已经获得过验证码了
