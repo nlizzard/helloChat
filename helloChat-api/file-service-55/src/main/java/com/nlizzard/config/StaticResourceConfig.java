@@ -9,8 +9,9 @@ public class StaticResourceConfig extends WebMvcConfigurationSupport {
 
     @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**")
-                .addResourceLocations("file:D:/program/");
+//        //搭配文件存储到本地方案一使用
+//        registry.addResourceHandler("/static/**")
+//                .addResourceLocations("file:D:/program/");
         super.addResourceHandlers(registry);
     }
 }

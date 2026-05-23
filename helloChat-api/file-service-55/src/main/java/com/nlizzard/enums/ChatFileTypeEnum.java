@@ -1,4 +1,4 @@
-package com.nlizzard;
+package com.nlizzard.enums;
 
 /**
  * 文件类型枚举

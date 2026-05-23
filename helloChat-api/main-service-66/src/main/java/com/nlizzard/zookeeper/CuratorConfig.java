@@ -38,7 +38,7 @@ public class CuratorConfig extends BaseInfoProperties {
     private Integer maxRetries;             // 最大重试次数
     private String namespace;               // 命名空间（root根节点名称）
 
-    public static final String path = "/server-list";
+    public static final String path = "/netty_server-list";
 
     @Bean
     public CuratorFramework curatorClient() {

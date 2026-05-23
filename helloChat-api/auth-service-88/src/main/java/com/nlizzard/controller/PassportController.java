@@ -5,6 +5,7 @@ import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.pojo.bo.RegistryLoginBO;
 import com.nlizzard.service.UsersService;
 import com.nlizzard.utils.IPUtil;
+import com.nlizzard.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -90,14 +91,12 @@ public class PassportController extends BaseInfoProperties {
 
     /**
      * 登出
-     * @param userId 用户ID
      */
     @PostMapping("logout")
-    public GraceJSONResult logout(@RequestParam("userId") @NotBlank(message = "用户ID不能为空") String userId
-                                    ,HttpServletRequest request)  {
+    public GraceJSONResult logout()  {
 
-        String uToken = request.getHeader(HEADER_USER_TOKEN);
-        redis.del(REDIS_USER_TOKEN + ":" + uToken);
+        // 删除redis中的Token就行
+        redis.del(UserContext.getRedisTokenKey());
         return GraceJSONResult.ok();
     }
 }

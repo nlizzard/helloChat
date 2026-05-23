@@ -1,6 +1,6 @@
 package com.nlizzard.controller;
 
-import com.nlizzard.ChatFileTypeEnum;
+import com.nlizzard.enums.ChatFileTypeEnum;
 import com.nlizzard.api.feign.UserInfoMicroServiceFeign;
 import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.config.MinIOConfig;
@@ -9,12 +9,8 @@ import com.nlizzard.grace.result.GraceJSONResult;
 import com.nlizzard.grace.result.ResponseStatusEnum;
 import com.nlizzard.pojo.vo.UsersVO;
 import com.nlizzard.pojo.vo.VideoMsgVO;
-import com.nlizzard.utils.JcodecVideoUtil;
-import com.nlizzard.utils.JsonUtils;
-import com.nlizzard.utils.MinIOUtils;
-import com.nlizzard.utils.QrCodeUtils;
+import com.nlizzard.utils.*;
 import io.micrometer.common.util.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,46 +35,45 @@ public class FileController extends BaseInfoProperties {
     private final UserInfoMicroServiceFeign userInfoMicroServiceFeign;
 
     // springboot文件上传实现方案一（传统单体项目可使用）
-    @PostMapping("uploadFace1")
-    public GraceJSONResult uploadFace1(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws Exception {
-
-        String userId = request.getHeader(HEADER_USER_ID);
-
-        // abc.123.456.png
-        String filename = file.getOriginalFilename();   // 获得文件原始名称
-        String suffixName = null;  // 从最后一个.开始截取
-        if (filename != null) {
-            suffixName = filename.substring(filename.lastIndexOf("."));
-        }
-        if(StringUtils.isBlank(suffixName)){
-            return GraceJSONResult.errorMsg("文件格式不正确");
-        }
-
-        String newFileName = userId + suffixName;   // 文件的新名称
-
-        // 设置文件存储路径，可以存放到任意的指定路径
-        String rootPath = "D:\\program" + File.separator; // 上传文件的存放位置
-
-        String filePath = rootPath + File.separator + "face" + File.separator + newFileName;
-        File newFile = new File(filePath);
-        // 判断目标文件所在目录是否存在
-        if (!newFile.getParentFile().exists()) {
-            // 如果目标文件所在目录不存在，则创建父级目录
-            newFile.getParentFile().mkdirs();
-        }
-
-        // 将内存中的数据写入磁盘
-        file.transferTo(newFile);
-
-        return GraceJSONResult.ok();
-    }
+//    @PostMapping("uploadFace1")
+//    public GraceJSONResult uploadFace1(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws Exception {
+//
+//        String userId = request.getHeader(HEADER_USER_ID);
+//
+//        // abc.123.456.png
+//        String filename = file.getOriginalFilename();   // 获得文件原始名称
+//        String suffixName = null;  // 从最后一个.开始截取
+//        if (filename != null) {
+//            suffixName = filename.substring(filename.lastIndexOf("."));
+//        }
+//        if(StringUtils.isBlank(suffixName)){
+//            return GraceJSONResult.errorMsg("文件格式不正确");
+//        }
+//
+//        String newFileName = userId + suffixName;   // 文件的新名称
+//
+//        // 设置文件存储路径，可以存放到任意的指定路径
+//        String rootPath = "D:\\program" + File.separator; // 上传文件的存放位置
+//
+//        String filePath = rootPath + File.separator + "face" + File.separator + newFileName;
+//        File newFile = new File(filePath);
+//        // 判断目标文件所在目录是否存在
+//        if (!newFile.getParentFile().exists()) {
+//            // 如果目标文件所在目录不存在，则创建父级目录
+//            newFile.getParentFile().mkdirs();
+//        }
+//
+//        // 将内存中的数据写入磁盘
+//        file.transferTo(newFile);
+//
+//        return GraceJSONResult.ok();
+//    }
 
 
     // 分布式存储技术方案minIO实现文件上传（微服务项目推荐使用）
     @PostMapping("uploadFace")
-    public GraceJSONResult uploadFace(HttpServletRequest request,
-                                    @RequestParam("file") MultipartFile file) throws Exception {
-        String userId = request.getHeader(HEADER_USER_ID);
+    public GraceJSONResult uploadFace(@RequestParam("file") MultipartFile file) throws Exception {
+        String userId = UserContext.getUserId();
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (StringUtils.isBlank(filename)) {
@@ -112,10 +106,9 @@ public class FileController extends BaseInfoProperties {
      * @return 微信二维码存放路径
      */
     @PostMapping("generatorQrCode")
-    public String generatorQrCode(HttpServletRequest request,
-                                  @RequestParam("wechatNumber")String wechatNumber) throws Exception {
+    public String generatorQrCode(@RequestParam("wechatNumber")String wechatNumber) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
         // 构建map对象
         Map<String, String> map = new HashMap<>();
         map.put("wechatNumber", wechatNumber);
@@ -139,10 +132,9 @@ public class FileController extends BaseInfoProperties {
      * @return 朋友圈背景图URL地址
      */
     @PostMapping("uploadFriendCircleBg")
-    public GraceJSONResult uploadFriendCircleBg(HttpServletRequest request,
-                                                @RequestParam("file") MultipartFile file) throws Exception {
+    public GraceJSONResult uploadFriendCircleBg(@RequestParam("file") MultipartFile file) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
         // 获得文件原始名称
         String filename = file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {
@@ -174,10 +166,9 @@ public class FileController extends BaseInfoProperties {
      * @return 聊天背景图URL地址
      */
     @PostMapping("uploadChatBg")
-    public GraceJSONResult uploadChatBg(HttpServletRequest request,
-                                        @RequestParam("file") MultipartFile file) throws Exception {
+    public GraceJSONResult uploadChatBg(@RequestParam("file") MultipartFile file) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
 
         String chatImageUrl = uploadForChatFiles(file,userId, ChatFileTypeEnum.CHAT_BG);
 
@@ -198,10 +189,9 @@ public class FileController extends BaseInfoProperties {
      * @return 朋友圈图片URL地址
      */
     @PostMapping("uploadFriendCircleImage")
-    public GraceJSONResult uploadFriendCircleImage(HttpServletRequest request,
-                                                   @RequestParam("file") MultipartFile file) throws Exception {
+    public GraceJSONResult uploadFriendCircleImage(@RequestParam("file") MultipartFile file) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
 
         String filename = file.getOriginalFilename();   // 获得文件原始名称
         if (StringUtils.isBlank(filename)) {
@@ -227,10 +217,9 @@ public class FileController extends BaseInfoProperties {
      * @return 聊天图片URL地址
      */
     @PostMapping("uploadChatPhoto")
-    public GraceJSONResult uploadChatPhoto(HttpServletRequest request,
-                                           @RequestParam("file") MultipartFile file) throws Exception {
+    public GraceJSONResult uploadChatPhoto(@RequestParam("file") MultipartFile file) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
 
         String imageUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.IMAGE);
 
@@ -243,9 +232,9 @@ public class FileController extends BaseInfoProperties {
      * @return VideoMsgVO对象，包含视频URL地址和封面URL地址
      */
     @PostMapping("uploadChatVideo")
-    public GraceJSONResult uploadChatVideo(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws Exception {
+    public GraceJSONResult uploadChatVideo(@RequestParam("file") MultipartFile file) throws Exception {
 
-        String userId = request.getHeader(HEADER_USER_ID);
+        String userId = UserContext.getUserId();
 
         String videoUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.VIDEO);
 
@@ -272,9 +261,9 @@ public class FileController extends BaseInfoProperties {
      * @return 聊天语音URL地址
      */
     @PostMapping("uploadChatVoice")
-    public GraceJSONResult uploadChatVoice(HttpServletRequest request,
-                                           @RequestParam("file") MultipartFile file) throws Exception {
-        String userId = request.getHeader(HEADER_USER_ID);
+    public GraceJSONResult uploadChatVoice(@RequestParam("file") MultipartFile file) throws Exception {
+        String userId = UserContext.getUserId();
+
         String voiceUrl = uploadForChatFiles(file, userId, ChatFileTypeEnum.VOICE);
 
         return GraceJSONResult.ok(voiceUrl);

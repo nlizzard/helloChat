@@ -54,7 +54,7 @@ public class ChatController extends BaseInfoProperties {
     }
 
     /**
-     * 获取我的聊天消息列表
+     * 获取我和对方的聊天消息列表
      */
     @PostMapping("list/{senderId}/{receiverId}")
     public GraceJSONResult list(@PathVariable @NotBlank(message="发送方id不能为空") String senderId,

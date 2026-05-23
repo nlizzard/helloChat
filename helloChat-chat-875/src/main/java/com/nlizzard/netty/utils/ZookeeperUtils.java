@@ -83,7 +83,7 @@ public class ZookeeperUtils {
 
         try {
 
-            String path = "/server-list";
+            String path = "/netty_server-list";
             List<String> list = zkClient.getChildren().forPath(path);
             for (String node:list) {
                 String pendingNodePath = path + "/" + node;

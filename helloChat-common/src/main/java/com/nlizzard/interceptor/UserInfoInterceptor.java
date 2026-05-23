@@ -4,6 +4,7 @@ import com.nlizzard.base.BaseInfoProperties;
 import com.nlizzard.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,8 +19,9 @@ public class UserInfoInterceptor extends BaseInfoProperties implements HandlerIn
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String userId = request.getHeader(HEADER_USER_ID);
         String userTokenKey = request.getHeader(HEADER_USER_TOKEN_KEY);
-
-        UserContext.setUserIdAndRedisTokenKey(userId,userTokenKey);
+        if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(userTokenKey)){
+            UserContext.setUserIdAndRedisTokenKey(userId,userTokenKey);
+        }
         return true;
     }
 

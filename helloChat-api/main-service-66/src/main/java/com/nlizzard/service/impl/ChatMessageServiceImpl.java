@@ -87,7 +87,7 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
         chatMessageMapper.selectPage(pageInfo, queryWrapper);
 
         // 获得列表后，倒着排序，因为聊天记录是展现最新的数据在聊天框的最下方，旧的数据在上方
-        // 逆向逆序的处理
+        // 逆向降序的处理
         List<ChatMessage> list = pageInfo.getRecords();
         List<ChatMessage> msgList  = list.stream().sorted(
                 Comparator.comparing(ChatMessage::getChatTime)
