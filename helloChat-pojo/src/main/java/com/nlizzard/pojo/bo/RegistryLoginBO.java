@@ -1,6 +1,9 @@
 package com.nlizzard.pojo.bo;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +25,8 @@ public class RegistryLoginBO {
 
     private String nickname;
 
-    @NotBlank(message = "设备类型码不能为空")
+    @NotNull(message = "设备类型码不能为空")
+    @Min(value = 1, message = "设备类型码不正确")
+    @Max(value = 3, message = "设备类型码不正确")
     private Integer deviceCode;
 }
