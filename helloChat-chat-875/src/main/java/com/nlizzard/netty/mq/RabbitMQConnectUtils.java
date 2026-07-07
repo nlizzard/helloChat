@@ -1,5 +1,6 @@
 package com.nlizzard.netty.mq;
 
+import com.nlizzard.netty.config.RuntimeConfig;
 import com.nlizzard.netty.websocket.UserChannelSession;
 import com.nlizzard.pojo.netty.DataContent;
 import com.nlizzard.utils.JsonUtils;
@@ -14,12 +15,11 @@ public class RabbitMQConnectUtils {
     private final List<Connection> connections = new ArrayList<>();
     private final int maxConnection = 20;
 
-    // 开发环境 dev
-    private final String host = "192.168.123.2";
-    private final int port = 5672;
-    private final String username = "nlizzard";
-    private final String password = "nlizzard";
-    private final String virtualHost = "helloChat";
+    private final String host = RuntimeConfig.rabbitMqHost();
+    private final int port = RuntimeConfig.rabbitMqPort();
+    private final String username = RuntimeConfig.rabbitMqUsername();
+    private final String password = RuntimeConfig.rabbitMqPassword();
+    private final String virtualHost = RuntimeConfig.rabbitMqVirtualHost();
 
     public ConnectionFactory factory;
 

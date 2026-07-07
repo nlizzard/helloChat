@@ -44,23 +44,34 @@ spring:
             - id: fileRoute
               uri: lb://file-service
               predicates:
-                - Path=/file/**,/static/**,
+                - Path=/file/**,/static/**
             - id: mainRoute
               uri: lb://main-service
               predicates:
                 - Path=/main/**,/userInfo/**,/friendRequest/**,/friendship/**,/friendCircle/**,/comment/**,/chat/**
-          globalcors:
+          g globalcors:
+            add-to-simple-url-handler-mapping: true
             cors-configurations:
-              '[/**]':
+              "[/**]":
                 allow-credentials: true
+                allowed-origin-patterns:
+                  - "http://localhost:*"
+                  - "http://127.0.0.1:*"
+                  - "http://192.168.123.*:*"
                 allowed-headers: "*"
-                allowed-origin-patterns: "*"
-                allowed-methods: "*"
-#注释配置在nacos中动态管理
-#blackIp:
-#  continueCounts: 5  #操作次数限制
-#  timeInterval: 20   #操作间隔限制 （单位：秒）
-#  limitTimes: 30     #限制访问时长 （单位：秒）
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                max-age: 3600
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials RETAIN_UNIQUE
+blackIp:
+  continueCounts: 40 #操作次数限制
+  timeInterval: 60 #操作间隔限制 （单位：秒）
+  limitTimes: 120 #限制访问时长 （单位：秒）
 
 # 日志级别
 logging:

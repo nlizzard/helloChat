@@ -4,6 +4,7 @@ package com.nlizzard.netty.websocket;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.nlizzard.enums.MsgTypeEnum;
 import com.nlizzard.grace.result.GraceJSONResult;
+import com.nlizzard.netty.config.RuntimeConfig;
 import com.nlizzard.netty.mq.MessagePublisher;
 import com.nlizzard.netty.utils.OkHttpUtil;
 import com.nlizzard.netty.utils.RedisClientUtils;
@@ -24,6 +25,8 @@ import redis.clients.jedis.RedisClient;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 // SimpleChannelInboundHandler: 对于请求来说，相当于入站(入境)
 // TextWebSocketFrame: 用于为websocket专门处理的文本数据对象，Frame是数据(消息)的载体
@@ -79,7 +82,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
 
             // 判断是否黑名单 start
             // 如果双方只要有一方是黑名单，则终止发送
-            GraceJSONResult result = OkHttpUtil.get("http://127.0.0.1:1000/friendship/isBlack?friendId1st=" + receiverId
+            GraceJSONResult result = OkHttpUtil.get(RuntimeConfig.gatewayBaseUrl() + "/friendship/isBlack?friendId1st=" + receiverId
                     + "&friendId2nd=" + senderId);
             boolean isBlack = false;
             if (result != null) {
@@ -150,6 +153,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
         System.out.println("发生异常捕获，channel对应的长id为：" + currentChannelId);
+        cause.printStackTrace();
 
         // 发生异常之后关闭连接(关闭channel)
         ctx.channel().close();
@@ -167,13 +171,45 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
     private void updateChannelSessionAndOnlineCounts(String currentChannelId)throws Exception{
         // 移除多余的会话
         String userId = UserChannelSession.getUserIdByChannelId(currentChannelId);
-        UserChannelSession.removeUselessChannels(userId, currentChannelId);
+        if (userId == null || userId.isBlank()) {
+            return;
+        }
 
-        // 连接关闭后，获得ip+端口，在redis中删除对应的关系，以便在前端设备断线后减少在线人数
-        RedisClient jedis = RedisClientUtils.getJedisClient();
-        String serverNode = jedis.get(userId);
-        NettyServerNode nettyServerNode = JsonUtils.jsonToPojo(serverNode, NettyServerNode.class);
-        // 连接关闭后，该节点下的在线人数递减
-        ZookeeperUtils.decrementOnlineCounts(nettyServerNode);
+        try {
+            UserChannelSession.removeUselessChannels(userId, currentChannelId);
+
+            // 连接关闭后，获得ip+端口，在redis中删除对应的关系，以便在前端设备断线后减少在线人数
+            RedisClient jedis = RedisClientUtils.getJedisClient();
+            Optional<NettyServerNode> nettyServerNode =
+                    findServerNodeForClosedChannel(currentChannelId, jedis::get);
+            if (nettyServerNode.isEmpty()) {
+                return;
+            }
+
+            // 连接关闭后，该节点下的在线人数递减
+            ZookeeperUtils.decrementOnlineCounts(nettyServerNode.get());
+        } finally {
+            UserChannelSession.removeUserChannelIdRelation(currentChannelId);
+        }
+    }
+
+    static Optional<NettyServerNode> findServerNodeForClosedChannel(String currentChannelId,
+                                                                    Function<String, String> serverNodeLoader) {
+        String userId = UserChannelSession.getUserIdByChannelId(currentChannelId);
+        if (userId == null || userId.isBlank() || serverNodeLoader == null) {
+            return Optional.empty();
+        }
+
+        String serverNode = serverNodeLoader.apply(userId);
+        if (serverNode == null || serverNode.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.ofNullable(JsonUtils.jsonToPojo(serverNode, NettyServerNode.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 }

@@ -38,6 +38,13 @@ public class UserChannelSession {
     }
 
     /**
+     * 移除channelId和userId的关联关系
+     */
+    public static void removeUserChannelIdRelation(String channelId) {
+        userChannelIdRelation.remove(channelId);
+    }
+
+    /**
      * 当websocket初次open的时候，初始化channel，把channel列表和用户userid关联起来
      */
     public static void putMultiChannels(String userId, Channel channel) {

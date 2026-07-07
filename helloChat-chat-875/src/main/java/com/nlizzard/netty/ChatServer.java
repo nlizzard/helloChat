@@ -1,6 +1,7 @@
 package com.nlizzard.netty;
 
 import com.nlizzard.netty.mq.RabbitMQConnectUtils;
+import com.nlizzard.netty.config.RuntimeConfig;
 import com.nlizzard.netty.utils.RedisClientUtils;
 import com.nlizzard.netty.utils.ZookeeperUtils;
 import com.nlizzard.netty.websocket.WSServerInitializer;
@@ -78,6 +79,11 @@ public class ChatServer {
     public static Integer selectPort(Integer port) throws Exception {
         String portKey = "netty_port";
         RedisClient jedis = RedisClientUtils.getJedisClient();
+        if (RuntimeConfig.fixedPort()) {
+            jedis.hset(portKey, String.valueOf(port), initOnlineCounts);
+            return port;
+        }
+
         Map<String, String> portMap = jedis.hgetAll(portKey);
         // 如果没有端口号，或者端口号列表为空，则直接使用默认端口号
         if(portMap == null || portMap.isEmpty()){

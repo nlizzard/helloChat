@@ -217,6 +217,49 @@ MySQL 负责保存用户、好友、朋友圈、评论和聊天消息等核心�
 
 ## 快速开始
 
+### Docker 一键部署
+
+项目根目录下已经提供 `docker` 目录，拉取项目后不需要先手动执行 `mvn package`，也不需要提交或准备各模块的 `target/` 目录。业务镜像会在 Docker 构建阶段从源码执行 Maven 打包。
+
+```bash
+cd docker
+docker compose up -d
+```
+
+首次启动会构建并启动网关、认证服务、主业务服务、文件服务和 3 个 Netty 聊天服务实例，同时启动 MySQL、Redis、RabbitMQ、ZooKeeper、Nacos 和 MinIO。MySQL 首次启动时会自动导入根目录的 `Hchat.sql`。
+
+默认访问入口：
+
+- HTTP 网关：`http://localhost:1000`
+- Netty WebSocket：`localhost:875`、`localhost:885`、`localhost:895`
+- Nacos 控制台：`http://localhost:18080`
+- RabbitMQ 控制台：`http://localhost:15672`，账号/密码 `nlizzard` / `nlizzard`
+- MinIO 控制台：`http://localhost:9001`，账号/密码 `minio` / `miniominio`
+- MySQL：`localhost:3306`
+- Redis：`localhost:6379`
+
+RabbitMQ、MySQL、Redis、MinIO、ZooKeeper 的数据会挂载到 `docker` 目录下对应的数据目录中，这些运行时数据目录已被 `.gitignore` 忽略。RabbitMQ 当前只挂载 `docker/rabbitmq_data/mnesia`，`.erlang.cookie` 保留在容器内部，避免 Windows 目录权限导致 RabbitMQ 启动失败。
+
+默认会启动 3 个 Netty 实例，容器内外端口分别为 `875`、`885`、`895`。每个实例会把自己的 `NETTY_ADVERTISED_HOST + 端口` 注册到 ZooKeeper，`main-service` 的 `/chat/getNettyOnlineInfo` 会返回当前在线人数较少的节点给客户端。
+
+如果客户端不在 Docker 主机本机运行，需要在启动前指定 Netty 对外暴露地址：
+
+```bash
+# Linux / macOS / Git Bash
+NETTY_ADVERTISED_HOST=192.168.1.10 docker compose up -d
+
+# Windows PowerShell
+$env:NETTY_ADVERTISED_HOST="192.168.1.10"; docker compose up -d
+```
+
+修改源码后需要重新构建业务镜像时执行：
+
+```bash
+docker compose up -d --build
+```
+
+更多端口和环境变量说明见 `docker/README.md`。
+
 ### 环境要求
 
 - JDK 21

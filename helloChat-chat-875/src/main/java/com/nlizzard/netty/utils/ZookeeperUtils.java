@@ -1,5 +1,6 @@
 package com.nlizzard.netty.utils;
 
+import com.nlizzard.netty.config.RuntimeConfig;
 import com.nlizzard.pojo.netty.NettyServerNode;
 import com.nlizzard.utils.JsonUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -12,6 +13,16 @@ import java.util.List;
 
 public class ZookeeperUtils {
 
+    private static final String NETTY_SERVER_LIST_PATH = "/netty_server_list";
+
+    public static String nettyServerListPath() {
+        return NETTY_SERVER_LIST_PATH;
+    }
+
+    public static String nettyServerNodePath(String nodeName) {
+        return NETTY_SERVER_LIST_PATH + "/" + nodeName;
+    }
+
     /** *
      * 注册Netty服务器节点到Zookeeper中
      * @param nodeName 节点名称
@@ -22,7 +33,7 @@ public class ZookeeperUtils {
                                            String ip,
                                            Integer port) throws Exception {
         CuratorFramework zkClient = CuratorUtils.getClient();
-        String path = "/" + nodeName;
+        String path = nettyServerListPath();
         Stat stat = zkClient.checkExists().forPath(path);
         if (stat == null) {
             zkClient.create()
@@ -40,13 +51,13 @@ public class ZookeeperUtils {
 
         zkClient.create()
                 .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                .forPath(path + "/IM-", nodeJson.getBytes());
+                .forPath(nettyServerNodePath("IM-"), nodeJson.getBytes());
     }
 
     // 获取本机ip地址(内部ip，TODO: 公网上线时，可以固定写死为公网ip地址)
     public static String getLocalIp() throws Exception {
         InetAddress addr = InetAddress.getLocalHost();
-        return addr.getHostAddress();
+        return RuntimeConfig.advertisedHost(addr.getHostAddress());
     }
 
 
@@ -83,10 +94,10 @@ public class ZookeeperUtils {
 
         try {
 
-            String path = "/netty_server-list";
+            String path = nettyServerListPath();
             List<String> list = zkClient.getChildren().forPath(path);
             for (String node:list) {
-                String pendingNodePath = path + "/" + node;
+                String pendingNodePath = nettyServerNodePath(node);
                 String nodeValue = new String(zkClient.getData().forPath(pendingNodePath));
                 NettyServerNode pendingNode = JsonUtils.jsonToPojo(nodeValue,
                         NettyServerNode.class);

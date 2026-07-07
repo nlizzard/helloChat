@@ -1,0 +1,331 @@
+name: hellochat
+
+x-app-build: &app-build
+  context: ..
+  dockerfile: docker/Dockerfile
+
+x-chat-service: &chat-service
+  image: hellochat/chat-service:local
+  build:
+    <<: *app-build
+    args:
+      MODULE: helloChat-chat-875
+      JAR_FILE: helloChat-chat-875/target/helloChat-chat-875-1.0.jar
+  environment: &chat-service-environment
+    JAVA_TOOL_OPTIONS: >-
+      -Xms128m -Xmx256m
+      -Dhellochat.netty.redis.host=redis
+      -Dhellochat.netty.redis.port=6379
+      -Dhellochat.netty.redis.password=
+      -Dhellochat.netty.redis.database=0
+      -Dhellochat.netty.rabbitmq.host=rabbitmq
+      -Dhellochat.netty.rabbitmq.port=5672
+      -Dhellochat.netty.rabbitmq.username=nlizzard
+      -Dhellochat.netty.rabbitmq.password=nlizzard
+      -Dhellochat.netty.rabbitmq.virtual-host=helloChat
+      -Dhellochat.netty.zookeeper.host=zookeeper:2181
+      -Dhellochat.netty.gateway.base-url=http://gateway-service:1000
+      -Dhellochat.netty.advertised-host=${NETTY_ADVERTISED_HOST:-localhost}
+      -Dhellochat.netty.fixed-port=true
+    TZ: Asia/Shanghai
+  depends_on:
+    redis:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+    zookeeper:
+      condition: service_healthy
+    gateway-service:
+      condition: service_started
+  restart: unless-stopped
+
+services:
+  mysql:
+    image: mysql:8.3.0
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: Hchat
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ../Hchat.sql:/docker-entrypoint-initdb.d/01-Hchat.sql:ro
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.6.2
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4.3.0-management
+    environment:
+      RABBITMQ_DEFAULT_USER: nlizzard
+      RABBITMQ_DEFAULT_PASS: nlizzard
+      RABBITMQ_DEFAULT_VHOST: helloChat
+      RABBITMQ_ERLANG_COOKIE: hellochat-rabbitmq-cookie
+    ports:
+      - "${RABBITMQ_ERLANG_PORT:-4369}:4369"
+      - "${RABBITMQ_AMQP_TLS_PORT:-5671}:5671"
+      - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_TLS_PORT:-15671}:15671"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+      - "${RABBITMQ_CLUSTER_PORT:-25672}:25672"
+    volumes:
+      - ./rabbitmq_data/mnesia:/var/lib/rabbitmq/mnesia
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  zookeeper:
+    image: zookeeper:3.9.5
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: ruok,stat
+      TZ: Asia/Shanghai
+    volumes:
+      - ./zookeeper/zookeeper_data:/data
+      - ./zookeeper/zookeeper_datalog:/datalog
+    ports:
+      - "${ZOOKEEPER_PORT:-2181}:2181"
+    healthcheck:
+      test: ["CMD-SHELL", "zkServer.sh status >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  nacos:
+    image: nacos/nacos-server:v3.2.1-2026.04.03
+    environment:
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      NACOS_AUTH_IDENTITY_KEY: nlizzard
+      NACOS_AUTH_IDENTITY_VALUE: nlizzard
+      NACOS_AUTH_TOKEN: VGhpc0lzQVNlY3JldEtleUZvck5hY29zMzJfVGVzdF8xMjM0NTY3ODkw
+      NACOS_AUTH_ENABLE: "false"
+      JVM_XMS: 128m
+      JVM_XMX: 512m
+      JVM_XMN: 128m
+      TZ: Asia/Shanghai
+    ports:
+      - "${NACOS_CONSOLE_PORT:-18080}:8080"
+      - "${NACOS_PORT:-18848}:8848"
+      - "${NACOS_GRPC_PORT:-19848}:9848"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec '</dev/tcp/127.0.0.1/8848'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001" --address ":9000"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniominio
+      TZ: Asia/Shanghai
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - ./minio_data:/data
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 minio miniominio; do
+          sleep 2
+        done
+        mc mb --ignore-existing local/hellochat
+        mc anonymous set download local/hellochat
+    restart: "no"
+
+  auth-service:
+    image: hellochat/auth-service:local
+    build:
+      <<: *app-build
+      args:
+        MODULE: helloChat-api/auth-service-88
+        JAR_FILE: helloChat-api/auth-service-88/target/auth-service-88-1.0.jar
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Xms128m -Xmx256m
+        -Dnacos.discovery.addr=nacos:8848
+        -Dnacos.discovery.username=
+        -Dnacos.discovery.password=
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+      TZ: Asia/Shanghai
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      file-service:
+        condition: service_started
+    restart: unless-stopped
+
+  main-service:
+    image: hellochat/main-service:local
+    build:
+      <<: *app-build
+      args:
+        MODULE: helloChat-api/main-service-66
+        JAR_FILE: helloChat-api/main-service-66/target/main-service-66-1.0.jar
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Xms128m -Xmx256m
+        -Dnacos.discovery.addr=nacos:8848
+        -Dnacos.discovery.username=
+        -Dnacos.discovery.password=
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/Hchat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.rabbitmq.host=rabbitmq
+        -Dspring.rabbitmq.port=5672
+        -Dspring.rabbitmq.username=nlizzard
+        -Dspring.rabbitmq.password=nlizzard
+        -Dspring.rabbitmq.virtual-host=helloChat
+        -Dzookeeper.curator.host=zookeeper:2181
+      TZ: Asia/Shanghai
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
+
+  file-service:
+    image: hellochat/file-service:local
+    build:
+      <<: *app-build
+      args:
+        MODULE: helloChat-api/file-service-55
+        JAR_FILE: helloChat-api/file-service-55/target/file-service-55-1.0.jar
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Xms128m -Xmx256m
+        -Dnacos.discovery.addr=nacos:8848
+        -Dnacos.discovery.username=
+        -Dnacos.discovery.password=
+        -Dminio.endpoint=http://minio:9000
+        -Dminio.fileHost=http://${MINIO_PUBLIC_HOST:-localhost}:${MINIO_API_PORT:-9000}
+        -Dminio.bucketName=hellochat
+        -Dminio.accessKey=minio
+        -Dminio.secretKey=miniominio
+      TZ: Asia/Shanghai
+    depends_on:
+      nacos:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  gateway-service:
+    image: hellochat/gateway-service:local
+    build:
+      <<: *app-build
+      args:
+        MODULE: helloChat-gateway-1000
+        JAR_FILE: helloChat-gateway-1000/target/helloChat-gateway-1000-1.0.jar
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Xms128m -Xmx256m
+        -Dnacos.discovery.addr=nacos:8848
+        -Dnacos.discovery.username=
+        -Dnacos.discovery.password=
+        -Dspring.config.import=optional:nacos:gateway-dev.yaml?group=DEFAULT_GROUP
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.cloud.nacos.config.server-addr=nacos:8848
+        -Dspring.cloud.nacos.username=
+        -Dspring.cloud.nacos.password=
+        -Dspring.cloud.nacos.config.username=
+        -Dspring.cloud.nacos.config.password=
+        -Dspring.cloud.nacos.discovery.username=
+        -Dspring.cloud.nacos.discovery.password=
+        -Dredis.database=0
+        -Dredis.host=redis
+        -Dredis.port=6379
+        -Dredis.password=
+      TZ: Asia/Shanghai
+    ports:
+      - "${GATEWAY_PORT:-1000}:1000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      main-service:
+        condition: service_started
+      file-service:
+        condition: service_started
+    restart: unless-stopped
+
+  chat-service:
+    <<: *chat-service
+    environment:
+      <<: *chat-service-environment
+      APP_ARGS: "875"
+    ports:
+      - "${NETTY_PORT:-875}:875"
+
+  chat-service-885:
+    <<: *chat-service
+    environment:
+      <<: *chat-service-environment
+      APP_ARGS: "885"
+    ports:
+      - "${NETTY_PORT_885:-885}:885"
+
+  chat-service-895:
+    <<: *chat-service
+    environment:
+      <<: *chat-service-environment
+      APP_ARGS: "895"
+    ports:
+      - "${NETTY_PORT_895:-895}:895"

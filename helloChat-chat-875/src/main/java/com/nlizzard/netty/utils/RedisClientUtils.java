@@ -2,6 +2,7 @@ package com.nlizzard.netty.utils;
 
 
 import lombok.Getter;
+import com.nlizzard.netty.config.RuntimeConfig;
 import redis.clients.jedis.ConnectionPoolConfig;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.RedisClient;
@@ -36,15 +37,20 @@ public class RedisClientUtils {
         // 连接池中连接空闲时，进行连接有效性检查的时间间隔。默认为30秒
         poolConfig.setTimeBetweenEvictionRuns(Duration.ofSeconds(1));
 
-        DefaultJedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
+        var clientConfigBuilder = DefaultJedisClientConfig.builder()
                 .connectionTimeoutMillis(1000)
                 .socketTimeoutMillis(1000)
-                .password("")
-                .database(0)
-                .build();
+                .database(RuntimeConfig.redisDatabase());
+
+        String redisPassword = RuntimeConfig.redisPassword();
+        if (redisPassword != null && !redisPassword.isBlank()) {
+            clientConfigBuilder.password(redisPassword);
+        }
+
+        DefaultJedisClientConfig clientConfig = clientConfigBuilder.build();
 
         jedisClient = RedisClient.builder()
-                .hostAndPort("192.168.123.2", 6379)
+                .hostAndPort(RuntimeConfig.redisHost(), RuntimeConfig.redisPort())
                 .poolConfig(poolConfig)
                 .clientConfig(clientConfig)
                 .build();
