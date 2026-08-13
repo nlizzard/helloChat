@@ -95,8 +95,9 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
-      timeout: 5s
+      timeout: 15s
       retries: 20
+      start_period: 20s
     restart: unless-stopped
 
   zookeeper:
