@@ -377,6 +377,12 @@
 			
 			// 把最新的聊天记录列表渲染在此
 			this.doMeAFavor();
+
+			// 登录后首次进入消息列表时，确保 websocket 已连接，
+			// 否则停留在消息列表 tab 会收不到实时消息（登录页跳转过来不会自动连）
+			if (app.userIsLogin() && !app.globalData.chatSocketOpen) {
+				app.scheduleReconnect(0);
+			}
 			
 			
 			// 群主在拉人后的操作
