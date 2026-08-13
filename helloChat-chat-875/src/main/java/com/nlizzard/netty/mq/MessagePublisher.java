@@ -13,12 +13,17 @@ public class MessagePublisher {
     public static final String ROUTING_KEY_HELLOCHAT_MSG_SEND = "helloChat.msg.send";
 
     /**
+     * RabbitMQConnectUtils 的连接池现在是进程级 static 单例（见该类说明），
+     * 这里复用同一个无状态实例即可，不再每条消息 new 一个（避免连接泄漏）。
+     */
+    private static final RabbitMQConnectUtils connectUtils = new RabbitMQConnectUtils();
+
+    /**
      * 发送消息到消息队列,后续完成消息保存到数据库
      * @param msg 消息对象
      * @throws Exception 异常
      */
     public static void sendMsgToSave(ChatMsg msg) throws Exception {
-        RabbitMQConnectUtils connectUtils = new RabbitMQConnectUtils();
         connectUtils.sendMsg(JsonUtils.objectToJson(msg),
                 HELLOCHAT_EXCHANGE,
                 ROUTING_KEY_HELLOCHAT_MSG_SEND);
@@ -30,9 +35,7 @@ public class MessagePublisher {
      * @throws Exception 异常
      */
     public static void sendMsgToOtherNettyServer(String msg) throws Exception {
-        RabbitMQConnectUtils connectUtils = new RabbitMQConnectUtils();
         String fanout_exchange = "fanout_exchange";
         connectUtils.sendMsg(msg, fanout_exchange, "");
     }
 }
-
