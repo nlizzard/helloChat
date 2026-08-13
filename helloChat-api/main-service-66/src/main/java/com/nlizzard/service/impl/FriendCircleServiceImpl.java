@@ -154,9 +154,15 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
     @Override
     public void delete(String friendCircleId, String userId) {
 
+        // 先校验是否本人的朋友圈，避免越权删除他人朋友圈下的评论与点赞
         LambdaQueryWrapper<FriendCircle> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.eq(FriendCircle::getId, friendCircleId)
                      .eq(FriendCircle::getUserId, userId);
+        long ownCount = friendCircleMapper.selectCount(deleteWrapper);
+        if (ownCount <= 0) {
+            // 非本人朋友圈，拒绝删除（避免清空他人朋友圈的评论与点赞）
+            return;
+        }
         // 删除朋友圈记录
         friendCircleMapper.delete(deleteWrapper);
 

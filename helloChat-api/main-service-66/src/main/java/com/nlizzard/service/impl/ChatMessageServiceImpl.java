@@ -70,8 +70,10 @@ public class ChatMessageServiceImpl extends BaseInfoProperties implements ChatMe
                         .eq(Friendship::getFriendId, receiverId))
                 .or(qw -> qw.eq(Friendship::getMyId, receiverId)
                         .eq(Friendship::getFriendId, senderId));
-        Friendship friendship = friendshipMapper.selectOne(friendShipQueryWrapper);
-        if (friendship == null) {
+        // 好友关系是双向存储（A->B 与 B->A 各存一行），这里用 selectCount 判断是否存在好友关系即可。
+        // 不能用 selectOne：OR 条件会同时命中两行，结果 > 1 时会抛 TooManyResultsException。
+        long friendCount = friendshipMapper.selectCount(friendShipQueryWrapper);
+        if (friendCount <= 0) {
             GraceException.display(ResponseStatusEnum.NO_AUTH);
         }
 

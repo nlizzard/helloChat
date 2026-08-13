@@ -21,20 +21,20 @@ public class UserContext {
 
     /**
      * 从ThreadLocal中获取用户ID
-     * @return 用户ID
+     * @return 用户ID；若当前线程未经拦截器设置（如异步/Feign 绕过网关等场景）则返回 null
      */
     public static String getUserId() {
         ConcurrentHashMap<String, String> map = userInfoThreadLocal.get();
-        return map.get("userId");
+        return map == null ? null : map.get("userId");
     }
 
     /**
      * 从ThreadLocal中获取redisTokenKey
-     * @return redisTokenKey
+     * @return redisTokenKey；若当前线程未经拦截器设置则返回 null
      */
     public static String getRedisTokenKey() {
         ConcurrentHashMap<String, String> map = userInfoThreadLocal.get();
-        return map.get("redisTokenKey");
+        return map == null ? null : map.get("redisTokenKey");
     }
 
     /**
