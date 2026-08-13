@@ -45,11 +45,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         }
 
         if(StringUtils.isNoneBlank(wechatNum)){
-            // 设置用户修改过微信号，存入redis中，限制用户年度内只能修改一次微信号
-            redis.setByDays(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM+":"+userId
-                            ,userId
-                            ,365);
-            // 设置新的微信二维码
+            // 设置新的微信二维码（getQrCodeUrl 内部 Feign 失败会返回 null）
             pendingUser.setWechatNumImg(getQrCodeUrl(wechatNum,userId));
         }
 
@@ -59,6 +55,14 @@ public class UsersServiceImpl extends BaseInfoProperties implements UsersService
         BeanUtils.copyProperties(modifyUserBO,pendingUser);
         // 更新用户信息
         usersMapper.updateById(pendingUser);
+
+        if(StringUtils.isNoneBlank(wechatNum)){
+            // 更新成功后再标记“已修改过微信号”，限制年度内只能改一次。
+            // 若写在更新之前，一旦二维码生成或 DB 更新失败，用户会白白损失年度唯一修改机会。
+            redis.setByDays(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM+":"+userId
+                            ,userId
+                            ,365);
+        }
     }
 
     @Override

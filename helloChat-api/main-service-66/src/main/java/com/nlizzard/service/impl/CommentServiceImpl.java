@@ -63,8 +63,11 @@ public class CommentServiceImpl extends BaseInfoProperties implements CommentSer
         BeanUtils.copyProperties(pendingComment, commentVO);
 
         Users commentUser = usersService.getById(commentBO.getCommentUserId());
-        commentVO.setCommentUserNickname(commentUser.getNickname());
-        commentVO.setCommentUserFace(commentUser.getFace());
+        // 评论人不存在（伪造/已删除用户）时不填充昵称头像，避免 commentUser.getNickname() NPE
+        if (commentUser != null) {
+            commentVO.setCommentUserNickname(commentUser.getNickname());
+            commentVO.setCommentUserFace(commentUser.getFace());
+        }
         commentVO.setCommentId(pendingComment.getId());
 
         return commentVO;

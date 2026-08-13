@@ -304,8 +304,10 @@ public class FileController extends BaseInfoProperties {
      * @return 新文件名称
      */
     private String dealWithFilename(String filename) {
-        String suffixName = filename.substring(filename.lastIndexOf("."));
-        String fName = filename.substring(0, filename.lastIndexOf("."));
+        int dotIdx = filename.lastIndexOf(".");
+        // 文件名无扩展名时 lastIndexOf 返回 -1，substring(-1) 会抛 StringIndexOutOfBoundsException
+        String suffixName = dotIdx >= 0 ? filename.substring(dotIdx) : "";
+        String fName = dotIdx >= 0 ? filename.substring(0, dotIdx) : filename;
         String uuid = UUID.randomUUID().toString();
         return fName + "-" + uuid + suffixName;
     }
@@ -315,7 +317,9 @@ public class FileController extends BaseInfoProperties {
      * @return 新文件名称
      */
     private String dealWithoutFilename(String filename) {
-        String suffixName = filename.substring(filename.lastIndexOf("."));
+        int dotIdx = filename.lastIndexOf(".");
+        // 文件名无扩展名时 lastIndexOf 返回 -1，substring(-1) 会抛 StringIndexOutOfBoundsException
+        String suffixName = dotIdx >= 0 ? filename.substring(dotIdx) : "";
         String uuid = UUID.randomUUID().toString();
         return uuid + suffixName;
     }

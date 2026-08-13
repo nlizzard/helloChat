@@ -266,12 +266,15 @@ public class MinIOUtils {
     public static ObjectWriteResponse uploadFile(String bucketName, MultipartFile file,
                                                  String objectName, String contentType) throws Exception {
         InputStream inputStream = file.getInputStream();
+        // 注意：用 MultipartFile 已知的 size 作为流长度，而非 inputStream.available()。
+        // available() 只是“可无阻塞读到的字节数”，不一定等于文件实际大小，
+        // 用它会导致上传内容被截断或上传失败。partSize=-1 表示由 minio 客户端分块。
         return minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
                         .contentType(contentType)
-                        .stream(inputStream, inputStream.available(), -1)
+                        .stream(inputStream, file.getSize(), -1)
                         .build());
     }
 
@@ -308,11 +311,13 @@ public class MinIOUtils {
      * @param inputStream 文件流
      */
     public static ObjectWriteResponse uploadFile(String bucketName, String objectName, InputStream inputStream) throws Exception {
+        // 仅凭 InputStream 无法可靠获知总长度（available() 不等于真实大小），
+        // 这里 partSize 传 -1 让 minio 客户端按默认分块大小读取到流末尾，避免上传截断。
         return minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
-                        .stream(inputStream, inputStream.available(), -1)
+                        .stream(inputStream, -1, 10485760)
                         .build());
     }
 
@@ -321,7 +326,7 @@ public class MinIOUtils {
                 PutObjectArgs.builder()
                         .bucket(bucketName)
                         .object(objectName)
-                        .stream(inputStream, inputStream.available(), -1)
+                        .stream(inputStream, -1, 10485760)
                         .build());
         if (needUrl) {
             String imageUrl = fileHost

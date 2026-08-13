@@ -86,7 +86,9 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
                     + "&friendId2nd=" + senderId);
             boolean isBlack = false;
             if (result != null) {
-                isBlack = (boolean)result.getData();
+                // data 为 Object，网关返回错误体时可能为 null 或非 Boolean，
+                // 直接 (boolean) 拆箱会 NPE / ClassCastException。Boolean.TRUE.equals 对 null 和非 Boolean 均安全。
+                isBlack = Boolean.TRUE.equals(result.getData());
             }
             if (isBlack) {
                 return;

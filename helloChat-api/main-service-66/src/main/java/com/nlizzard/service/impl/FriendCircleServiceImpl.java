@@ -101,9 +101,17 @@ public class FriendCircleServiceImpl extends BaseInfoProperties implements Frien
 
         // 根据朋友圈的主键ID查询归属人(发布人)
         FriendCircle friendCircle = this.selectFriendCircle(friendCircleId);
+        // 朋友圈不存在（已删除或伪造 id）时不点赞，避免 friendCircle.getUserId() NPE
+        if (friendCircle == null) {
+            return;
+        }
 
         // 根据用户主键ID查询点赞人
         Users users = usersService.getById(userId);
+        // 点赞人不存在时不点赞，避免 users.getNickname() NPE
+        if (users == null) {
+            return;
+        }
 
         FriendCircleLiked circleLiked = new FriendCircleLiked();
         circleLiked.setFriendCircleId(friendCircleId);
