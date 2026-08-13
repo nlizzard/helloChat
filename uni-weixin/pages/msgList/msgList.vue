@@ -487,7 +487,9 @@
 								
 								tabTotalUnReadCounts += unReadCounts;
 							}
-							this.lastestUserChatList = lastestUserChatList;
+							// 修复：uni.request 的 success 是普通函数，this 不是 Vue 实例（严格模式下为 undefined），
+							// 直接用 this 赋值会抛 TypeError 并中断后续 setTabBarRedNumber/removeTabBarBadge（导致红点不刷新）。改用上方已声明的 me。
+							me.lastestUserChatList = lastestUserChatList;
 							
 							if (tabTotalUnReadCounts > 0) {
 								app.setTabBarRedNumber(0, tabTotalUnReadCounts);
