@@ -66,12 +66,13 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
         HttpHeaders headers = exchange.getRequest().getHeaders();
         String userTokenKey = headers.getFirst(HEADER_USER_TOKEN_KEY);
         String userToken = headers.getFirst(HEADER_USER_TOKEN);
+        log.info("当前请求的路径[{}]被拦截，用户tokenKey[{}]，用户token[{}]", url, userTokenKey, userToken);
 
         // 6. 判断header中是否有token，对用户请求进行判断拦截
         if (StringUtils.isNotBlank(userTokenKey) && StringUtils.isNotBlank(userToken)) {
 
             String redisUserToken = redis.get(userTokenKey);
-            if(StringUtils.isBlank(redisUserToken) || !redisUserToken.equals(userToken)){
+            if(StringUtils.isBlank(redisUserToken) || !Objects.equals(redisUserToken, userToken)) {
                 // 如果redis中没有token，或者token不匹配，则表示用户没有登录
                 return RenderErrorUtils.display(exchange, ResponseStatusEnum.UN_LOGIN);
             }
@@ -79,7 +80,7 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
             String userId = JwtUtil.getUserId(userToken);
             redis.expireByDays(userTokenKey,USER_TOKEN_EXPIRE_DAY); // 刷新token过期时间
             // 将用户id放入header中，继续向下游服务传递
-            chain.filter(exchange.mutate()
+            return chain.filter(exchange.mutate()
                             .request(r -> r.header(HEADER_USER_ID, Objects.requireNonNull(userId))
                                     .header(HEADER_USER_TOKEN_KEY, Objects.requireNonNull(userTokenKey)))
                     .build());
